@@ -7,13 +7,32 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * <pre>
+ * Class Name: AttendanceService
+ * Description: 근태 기록 조회 등 근태 관련 비즈니스 로직을 처리하는 서비스 클래스
+ *
+ * History
+ * 2025/12/09 (이지윤) 최초 작성 및 컨벤션 적용
+ * </pre>
+ *
+ * @author 이지윤
+ * @version 1.0
+ */
+
 @Service
 @RequiredArgsConstructor
 public class AttendanceService {
 
+    /** 근태 정보 조회를 위한 Mapper */
     private final AttendanceMapper attendanceMapper;
 
-    public List<PersonalDTO> getPersonalList(){
+    /**
+     * 개인 근태 기록 목록을 조회합니다.
+     *
+     * @return 개인 근태 기록 리스트(List<PersonalDTO>)
+     */
+    public List<PersonalDTO> getPersonalList() {
         return attendanceMapper.selectPersonal();
     }
 }
