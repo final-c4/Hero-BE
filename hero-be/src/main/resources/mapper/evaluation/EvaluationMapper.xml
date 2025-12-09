@@ -4,4 +4,7 @@
 
 <mapper namespace="com.c4.hero.domain.evaluation.mapper.EvaluationMapper">
 
+    <!-- 아직 쿼리 안 씀. 나중에 추가 -->
+
+
 </mapper>
