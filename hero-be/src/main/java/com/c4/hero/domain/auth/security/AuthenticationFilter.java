@@ -16,6 +16,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import java.io.IOException;
 
+/**
+ * <pre>
+ * Class Name: AuthenticationFilter
+ * Description: 사용자의 로그인 요청을 가로채 인증을 처리하는 필터
+ *
+ * History
+ * 2025/12/09 (이승건) 최초 작성
+ * </pre>
+ *
+ * @author 이승건
+ * @version 1.0
+ */
+
 @Slf4j
 @RequiredArgsConstructor
 public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {

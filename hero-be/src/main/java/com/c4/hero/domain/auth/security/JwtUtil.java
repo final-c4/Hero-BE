@@ -21,6 +21,18 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 
+/**
+ * <pre>
+ * Class Name: JwtUtil
+ * Description: JWT 토큰의 생성, 검증, 정보 추출을 담당하는 유틸리티 클래스
+ *
+ * History
+ * 2025/12/09 (이승건) 최초 작성
+ * </pre>
+ *
+ * @author 이승건
+ * @version 1.0
+ */
 @Slf4j
 @Component
 public class JwtUtil {
@@ -95,9 +107,10 @@ public class JwtUtil {
     }
 
     /**
-     * 토큰 유효성 검사
+     * 토큰 유효성 검사. 만료된 토큰은 ExpiredJwtException을 던집니다.
      * @param token 검증할 토큰
      * @return 유효 여부
+     * @throws ExpiredJwtException 토큰이 만료된 경우
      */
     public boolean validateToken(String token) {
         try {
@@ -106,7 +119,9 @@ public class JwtUtil {
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             log.warn("유효하지 않은 JWT 서명입니다.");
         } catch (ExpiredJwtException e) {
-            log.warn("만료된 JWT 토큰입니다.");
+            // 만료된 토큰의 경우, 예외를 그대로 던져서 호출한 쪽에서 처리하도록 함
+            log.warn("만료된 토큰입니다.");
+            throw e;
         } catch (UnsupportedJwtException e) {
             log.warn("지원하지 않는 JWT 토큰입니다.");
         } catch (IllegalArgumentException e) {

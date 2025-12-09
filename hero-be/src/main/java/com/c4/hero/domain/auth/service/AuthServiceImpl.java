@@ -32,13 +32,14 @@ public class AuthServiceImpl implements AuthService {
 
     private final AccountRepository accountRepository;
     private final JwtUtil jwtUtil;
+
     /**
-     * 사용자 이름(계정 ID)으로 사용자 정보를 조회하여 UserDetails 객체로 반환
+     * 사용자 이름(계정 ID)으로 사용자 정보를 조회하여 UserDetails 객체로 반환합니다.
+     * {@inheritDoc}
      *
-     * @param username the username identifying the user whose data is required.
-     * @return a fully populated user record (never <code>null</code>)
-     * @throws UsernameNotFoundException if the user could not be found or the user has no
-     *                                   GrantedAuthority
+     * @param username 사용자 이름 (계정 ID)
+     * @return 조회된 사용자 정보를 담은 UserDetails 객체
+     * @throws UsernameNotFoundException 사용자를 찾을 수 없거나 권한 정보가 없는 경우
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -48,7 +49,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
+     * Refresh Token을 사용하여 새로운 Access Token을 발급합니다.
      * {@inheritDoc}
+     *
+     * @param refreshToken 유효한 Refresh Token
+     * @return 새로 발급된 Access Token
+     * @throws BusinessException Refresh Token이 유효하지 않을 경우
      */
     @Override
     @Transactional
