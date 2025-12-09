@@ -1,7 +1,13 @@
 package com.c4.hero.common.config;
 
+import com.c4.hero.domain.auth.security.AuthenticationFilter;
+import com.c4.hero.domain.auth.security.JwtUtil;
+import com.c4.hero.domain.auth.security.JwtVerificationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -9,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -26,6 +33,7 @@ import java.util.Arrays;
  *
  * History
  * 2025/11/28 (혜원) 최초 작성
+ * 2025/12/09 (승건) 토큰 필터 추가
  * </pre>
  *
  * @author 혜원
@@ -34,7 +42,11 @@ import java.util.Arrays;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtUtil jwtUtil;
+    private final AuthenticationConfiguration authenticationConfiguration;
 
     /**
      * Spring Security 필터 체인 설정
@@ -49,6 +61,13 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        // AuthenticationManager 가져오기
+        AuthenticationManager authenticationManager = authenticationConfiguration.getAuthenticationManager();
+
+        // 로그인 필터 생성
+        AuthenticationFilter authenticationFilter = new AuthenticationFilter(authenticationManager, jwtUtil);
+        authenticationFilter.setFilterProcessesUrl("/api/auth/login");
+
         http
                 // CSRF 보호 비활성화 (JWT 사용)
                 .csrf(csrf -> csrf.disable())
@@ -68,10 +87,30 @@ public class SecurityConfig {
                         .requestMatchers("/api/public/**").permitAll()    // 공개 API 허용
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자만 접근
                         .anyRequest().authenticated()                      // 나머지는 인증 필요
-                );
+                )
+
+                // 커스텀 필터 추가
+                // 1. 로그인 필터: UsernamePasswordAuthenticationFilter 위치에 추가
+                .addFilterAt(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // 2. JWT 검증 필터: 로그인 필터 이전에 추가
+                .addFilterBefore(new JwtVerificationFilter(jwtUtil), AuthenticationFilter.class);
+
 
         return http.build();
     }
+
+    /**
+     * 인증 관리자 Bean 등록
+     *
+     * @param configuration AuthenticationConfiguration
+     * @return AuthenticationManager
+     * @throws Exception
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
+
 
     /**
      * 비밀번호 암호화 인코더

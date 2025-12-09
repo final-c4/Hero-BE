@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
  * History
  * 2025/11/28 (혜원) 최초 작성
  * 2025/12/09 (승건) 사원 추가 시 발생할 수 있는 에러 추가
+ * 2025/12/09 (이승건) 토큰 재발급 관련 에러 추가
  * </pre>
  *
  * @author 혜원
@@ -50,6 +51,11 @@ public enum ErrorCode {
      * 권한 없음
      */
     FORBIDDEN(HttpStatus.FORBIDDEN, "C005", "권한이 없습니다."),
+
+    /**
+     * 유효하지 않은 리프레시 토큰
+     */
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "C006", "유효하지 않은 리프레시 토큰입니다."),
 
     // ===== 사원(Employee) 관련 에러 =====
     /**
