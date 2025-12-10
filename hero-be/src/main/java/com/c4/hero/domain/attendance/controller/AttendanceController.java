@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 /**
  * <pre>
  * Class Name: AttendanceController
@@ -20,9 +18,8 @@ import java.util.List;
  * </pre>
  *
  * @author 이지윤
- * @version 1.0
+ * @version 2.0
  */
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/attendance")
@@ -32,15 +29,21 @@ public class AttendanceController {
     private final AttendanceService attendanceService;
 
     /**
-     * 개인 근태 기록 목록을 조회합니다.
+     * 개인 근태 기록 목록(페이지)을 조회합니다.
      *
-     * @return 개인 근태 기록 리스트(List<PersonalDTO>)
+     * @param page      조회할 페이지 번호 (1부터 시작)
+     * @param size      한 페이지당 조회할 데이터 개수
+     * @param startDate 조회 시작일(yyyy-MM-dd), null인 경우 기간 필터 미적용
+     * @param endDate   조회 종료일(yyyy-MM-dd), null인 경우 기간 필터 미적용
+     * @return 개인 근태 기록 페이지 응답 DTO
      */
     @GetMapping("/personal")
-    public PersonalPageResponseDTO setPersonalList(
+    public PersonalPageResponseDTO getPersonalList(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate
     ) {
-        return attendanceService.getPersonalList(page, size);
+        return attendanceService.getPersonalList(page, size, startDate, endDate);
     }
 }

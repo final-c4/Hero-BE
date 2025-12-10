@@ -20,7 +20,6 @@ import java.util.List;
  * @author 이지윤
  * @version 1.0
  */
-
 @Service
 @RequiredArgsConstructor
 public class AttendanceService {
@@ -29,27 +28,49 @@ public class AttendanceService {
     private final AttendanceMapper attendanceMapper;
 
     /**
-     * 개인 근태 기록 목록을 조회합니다.
+     * 개인 근태 기록 페이지를 조회합니다.
      *
-     * @return 개인 근태 기록 리스트(List<PersonalDTO>)
+     * @param page      요청 페이지 번호 (1부터 시작)
+     * @param size      페이지당 데이터 개수
+     * @param startDate 조회 시작일(yyyy-MM-dd), null인 경우 기간 필터 미적용
+     * @param endDate   조회 종료일(yyyy-MM-dd), null인 경우 기간 필터 미적용
+     * @return 개인 근태 기록 페이지 응답 DTO
      */
-    public PersonalPageResponseDTO getPersonalList(int page, int size) {
-
+    public PersonalPageResponseDTO getPersonalList(
+            int page,
+            int size,
+            String startDate,
+            String endDate
+    ) {
+        // 만약을 대비한 보험
         int safePage = Math.max(page, 1);
         int safeSize = Math.max(size, 1);
 
-        int offset = (safePage - 1) * safeSize;
+        // 1. 전체 개수 조회 (날짜 필터 반영)
+        int totalCount = attendanceMapper.selectPersonalCount(startDate, endDate);
+        int totalPages = (int) Math.ceil((double) totalCount / safeSize);
 
-        int totalCount = attendanceMapper.selectPersonalCount();
-        List<PersonalDTO> items =
-                attendanceMapper.selectPersonalPage(offset, safeSize);
-
-        int totalPages = (int)Math.ceil((double)totalCount / safeSize);
-
-        if (totalPages > 0 && safePage > totalPages) {
+        // 2. 페이지 번호 보정
+        if (totalPages == 0) {
+            // 데이터가 하나도 없는 경우: 페이지를 1로 고정
+            safePage = 1;
+        } else if (safePage > totalPages) {
+            // 요청한 페이지가 너무 클 경우 마지막 페이지로 이동
             safePage = totalPages;
         }
 
+        // 3. OFFSET 계산 (보정된 safePage 기준)
+        int offset = (safePage - 1) * safeSize;
+
+        // 4. 현재 페이지 데이터 조회
+        List<PersonalDTO> items = attendanceMapper.selectPersonalPage(
+                offset,
+                safeSize,
+                startDate,
+                endDate
+        );
+
+        // 5. 페이지 응답 DTO 구성
         return new PersonalPageResponseDTO(
                 items,
                 safePage,
