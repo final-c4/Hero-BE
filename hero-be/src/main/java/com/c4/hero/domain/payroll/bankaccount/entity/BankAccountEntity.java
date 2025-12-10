@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 /**
  * <pre>
- * Class Name: AccountEntity
+ * Class Name: BankAccountEntity
  * Description: 급여 계좌 정보를 저장하는 엔티티
  *
  * History

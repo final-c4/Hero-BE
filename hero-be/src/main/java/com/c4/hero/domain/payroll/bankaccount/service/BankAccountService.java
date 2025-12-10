@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * <pre>
- * Class Name: AccountService
+ * Class Name: BankAccountService
  * Description: 사원 급여 계좌 서비스 계층
  *
  * History

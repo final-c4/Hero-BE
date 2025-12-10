@@ -9,7 +9,7 @@ import java.util.Optional;
 
 /**
  * <pre>
- * Class Name: AccountRepository
+ * Class Name: BankAccountRepository
  * Description: 사원 급여 계좌 조회/저장용 JPA Repository
  *
  * History

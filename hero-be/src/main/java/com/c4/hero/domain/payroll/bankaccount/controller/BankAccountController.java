@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * <pre>
- * Class Name: AccountController
+ * Class Name: BankAccountController
  * Description: 사원 계좌 관련 컨트롤러
  *
  * History
