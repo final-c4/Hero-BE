@@ -1,5 +1,6 @@
 package com.c4.hero.domain.attendance.controller;
 
+import com.c4.hero.domain.attendance.dto.OvertimeDTO;
 import com.c4.hero.domain.attendance.dto.PersonalPageResponseDTO;
 import com.c4.hero.domain.attendance.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * <pre>
@@ -45,5 +48,10 @@ public class AttendanceController {
             @RequestParam(required = false) String endDate
     ) {
         return attendanceService.getPersonalList(page, size, startDate, endDate);
+    }
+
+    @GetMapping("/overtime")
+    public List<OvertimeDTO> getOvertimeList(){
+        return attendanceService.getOvertimeList();
     }
 }

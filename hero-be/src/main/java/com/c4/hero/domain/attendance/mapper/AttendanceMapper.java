@@ -1,5 +1,6 @@
 package com.c4.hero.domain.attendance.mapper;
 
+import com.c4.hero.domain.attendance.dto.OvertimeDTO;
 import com.c4.hero.domain.attendance.dto.PersonalDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -50,4 +51,6 @@ public interface AttendanceMapper {
             @Param("startDate") String startDate,
             @Param("endDate") String endDate
     );
+
+    List<OvertimeDTO> selectOvertimePage();
 }

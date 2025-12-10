@@ -1,5 +1,6 @@
 package com.c4.hero.domain.attendance.service;
 
+import com.c4.hero.domain.attendance.dto.OvertimeDTO;
 import com.c4.hero.domain.attendance.dto.PersonalDTO;
 import com.c4.hero.domain.attendance.dto.PersonalPageResponseDTO;
 import com.c4.hero.domain.attendance.mapper.AttendanceMapper;
@@ -78,5 +79,9 @@ public class AttendanceService {
                 totalCount,
                 totalPages
         );
+    }
+
+    public List<OvertimeDTO> getOvertimeList(){
+        return attendanceMapper.selectOvertimePage();
     }
 }
