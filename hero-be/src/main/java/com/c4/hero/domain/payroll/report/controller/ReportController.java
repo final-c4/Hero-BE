@@ -1,10 +1,17 @@
 package com.c4.hero.domain.payroll.report.controller;
 
-import com.c4.hero.domain.payroll.report.dto.*;
+
+import com.c4.hero.domain.payroll.report.dto.MyPaySummaryDTO;
+import com.c4.hero.domain.payroll.report.dto.PayHistoryResponseDTO;
+import com.c4.hero.domain.payroll.report.dto.PayslipDetailDTO;
 import com.c4.hero.domain.payroll.report.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 
 import java.security.Principal;
 
