@@ -87,7 +87,7 @@
         </where>
     </select>
 
-    <select id="selectOvertimePage" resultMap="OvertimeMap">
+    <select id="selectOvertimePage" resultMap="OvertimeMap" parameterType="map">
         SELECT
             ove.overtime_id,
             ove.date,
@@ -96,6 +96,29 @@
             ove.overtime_hours,
             ove.reason
           FROM tbl_overtime ove
+          <where>
+              <if test="startDate != null and startDate != ''">
+                  AND ove.date &gt;= #{startDate}
+              </if>
+              <if test="endDate != null and endDate != ''">
+                  AND ove.date &lt;= #{endDate}
+              </if>
+          </where>
+          ORDER BY ove.date DESC, ove.overtime_id DESC
+          LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="selectOvertimeCount" resultType="int" parameterType="map">
+        SELECT COUNT(*)
+        FROM tbl_overtime ove
+        <where>
+            <if test="startDate != null and startDate != ''">
+                AND ove.date &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND ove.date &lt;= #{endDate}
+            </if>
+        </where>
     </select>
 
 </mapper>

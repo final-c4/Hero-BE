@@ -1,7 +1,8 @@
 package com.c4.hero.domain.attendance.controller;
 
 import com.c4.hero.domain.attendance.dto.OvertimeDTO;
-import com.c4.hero.domain.attendance.dto.PersonalPageResponseDTO;
+import com.c4.hero.domain.attendance.dto.PageResponseDTO;
+import com.c4.hero.domain.attendance.dto.PersonalDTO;
 import com.c4.hero.domain.attendance.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +42,7 @@ public class AttendanceController {
      * @return 개인 근태 기록 페이지 응답 DTO
      */
     @GetMapping("/personal")
-    public PersonalPageResponseDTO getPersonalList(
+    public PageResponseDTO<PersonalDTO> getPersonalList(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String startDate,
@@ -51,7 +52,12 @@ public class AttendanceController {
     }
 
     @GetMapping("/overtime")
-    public List<OvertimeDTO> getOvertimeList(){
-        return attendanceService.getOvertimeList();
+    public PageResponseDTO<OvertimeDTO> getOvertimeList(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate
+    ){
+        return attendanceService.getOvertimeList(page, size, startDate, endDate);
     }
 }

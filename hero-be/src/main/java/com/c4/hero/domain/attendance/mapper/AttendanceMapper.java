@@ -52,5 +52,17 @@ public interface AttendanceMapper {
             @Param("endDate") String endDate
     );
 
-    List<OvertimeDTO> selectOvertimePage();
+    List<OvertimeDTO> selectOvertimePage(
+            @Param("offset") int offset,
+            @Param("size") int size,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate
+    );
+
+    int selectOvertimeCount(
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate
+    );
 }
+
+

@@ -2,7 +2,7 @@ package com.c4.hero.domain.attendance.service;
 
 import com.c4.hero.domain.attendance.dto.OvertimeDTO;
 import com.c4.hero.domain.attendance.dto.PersonalDTO;
-import com.c4.hero.domain.attendance.dto.PersonalPageResponseDTO;
+import com.c4.hero.domain.attendance.dto.PageResponseDTO;
 import com.c4.hero.domain.attendance.mapper.AttendanceMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -37,7 +37,7 @@ public class AttendanceService {
      * @param endDate   조회 종료일(yyyy-MM-dd), null인 경우 기간 필터 미적용
      * @return 개인 근태 기록 페이지 응답 DTO
      */
-    public PersonalPageResponseDTO getPersonalList(
+    public PageResponseDTO<PersonalDTO> getPersonalList(
             int page,
             int size,
             String startDate,
@@ -72,7 +72,7 @@ public class AttendanceService {
         );
 
         // 5. 페이지 응답 DTO 구성
-        return new PersonalPageResponseDTO(
+        return new PageResponseDTO<>(
                 items,
                 safePage,
                 safeSize,
@@ -81,7 +81,40 @@ public class AttendanceService {
         );
     }
 
-    public List<OvertimeDTO> getOvertimeList(){
-        return attendanceMapper.selectOvertimePage();
+    public PageResponseDTO<OvertimeDTO> getOvertimeList(
+            int page,
+            int size,
+            String startDate,
+            String endDate
+    ){
+        int safePage = Math.max(page, 1);
+        int safeSize = Math.max(size, 1);
+
+        int totalCount = attendanceMapper.selectOvertimeCount(startDate, endDate);
+        int totalPages = (int) Math.ceil((double) totalCount / safeSize);
+
+        if (totalPages == 0) {
+            safePage = 1;
+        } else if (safePage > totalPages) {
+            safePage = totalPages;
+        }
+
+        int offset = (safePage - 1) * safeSize;
+
+        // 4. 현재 페이지 데이터 조회
+        List<OvertimeDTO> items = attendanceMapper.selectOvertimePage(
+                offset,
+                safeSize,
+                startDate,
+                endDate
+        );
+
+        return new PageResponseDTO<>(
+                items,
+                safePage,
+                safeSize,
+                totalCount,
+                totalPages
+        );
     }
 }

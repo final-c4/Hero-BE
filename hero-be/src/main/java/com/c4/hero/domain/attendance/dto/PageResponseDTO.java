@@ -23,10 +23,10 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
-public class PersonalPageResponseDTO {
+public class PageResponseDTO<T> {
 
-    /** 개인 근태 기록 목록 */
-    private List<PersonalDTO> items;
+    /** 출석 및 휴가 부분에 관한 DTO */
+    private List<T> items;
 
     /** 현재 페이지 번호 (1부터 시작) */
     private int page;
