@@ -26,6 +26,7 @@ import java.util.Arrays;
  *
  * History
  * 2025/11/28 (혜원) 최초 작성
+ * 2025/12/11 (혜원) WebSocket 설정 추가
  * </pre>
  *
  * @author 혜원
@@ -51,7 +52,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 // CSRF 보호 비활성화 (JWT 사용)
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/ws/**")  // WebSocket 경로 CSRF 무시
+                        .disable()
+                )
 
                 // CORS 설정
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -63,13 +67,19 @@ public class SecurityConfig {
 
                 // URL별 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
+                                .requestMatchers("/ws/**").permitAll()
+                                .anyRequest().permitAll()
 //                        .requestMatchers("/api/auth/**").permitAll()      // 인증 API는 모두 허용
 //                        .requestMatchers("/api/public/**").permitAll()    // 공개 API 허용
 //                        .requestMatchers("/api/me/payroll/**").permitAll() // 급여 조회 개발용 허용
 //                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자만 접근
 //                        .anyRequest().authenticated()                      // 나머지는 인증 필요
+                )
+                // WebSocket을 위한 프레임 옵션 설정
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin())
                 );
+
 
         return http.build();
     }
