@@ -53,7 +53,7 @@ public class Employee {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
-    private Department department;
+    private EmployeeDepartment employeeDepartment;
 
     /**
      * 사번 (고유)
@@ -158,20 +158,19 @@ public class Employee {
      * 직급
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "position")
+    @JoinColumn(name = "grade_id")
     private Grade grade;
 
     /**
      * 직책
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_title")
+    @JoinColumn(name = "job_title_id")
     private JobTitle jobTitle;
 
-
     @Builder
-    public Employee(Department department, String employeeNumber, String employeeName, byte[] email, byte[] phone, LocalDate birthDate, String gender, EmployeeStatus status, String contractType, byte[] address, LocalDate hireDate, String imagePath, Grade grade, JobTitle jobTitle) {
-        this.department = department;
+    public Employee(EmployeeDepartment employeeDepartment, String employeeNumber, String employeeName, byte[] email, byte[] phone, LocalDate birthDate, String gender, EmployeeStatus status, String contractType, byte[] address, LocalDate hireDate, String imagePath, Grade grade, JobTitle jobTitle) {
+        this.employeeDepartment = employeeDepartment;
         this.employeeNumber = employeeNumber;
         this.employeeName = employeeName;
         this.email = email;
