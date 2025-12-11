@@ -1,5 +1,6 @@
 package com.c4.hero.domain.attendance.mapper;
 
+import com.c4.hero.domain.attendance.dto.ChangeLogDTO;
 import com.c4.hero.domain.attendance.dto.CorrectionDTO;
 import com.c4.hero.domain.attendance.dto.OvertimeDTO;
 import com.c4.hero.domain.attendance.dto.PersonalDTO;
@@ -11,15 +12,16 @@ import java.util.List;
 /**
  * <pre>
  * Interface Name: AttendanceMapper
- * Description: 근태(개인 근태, 초과 근무 등) 관련 데이터를 조회하기 위한 MyBatis Mapper 인터페이스
+ * Description: 근태(개인 근태, 초과 근무, 근태 정정 등) 관련 데이터를 조회하기 위한 MyBatis Mapper 인터페이스
  *
  * History
  * 2025/12/09 (이지윤) 최초 작성
  * 2025/12/10 (이지윤) 초과 근무 조회 메서드 추가 및 컨벤션 정리
+ * 2025/12/10 (이지윤) 근태 정정 조회 메서드 추가
  * </pre>
  *
  * @author 이지윤
- * @version 2.0
+ * @version 3.0
  */
 @Mapper
 public interface AttendanceMapper {
@@ -103,6 +105,21 @@ public interface AttendanceMapper {
             @Param("endDate") String endDate
     );
 
+    /**
+     * 근태 정정(출퇴근 시간 수정) 요청 목록(페이지)을 조회합니다.
+     *
+     * @param offset    조회 시작 위치 (0부터 시작)
+     * @param size      페이지당 데이터 개수
+     * @param startDate 조회 시작일(yyyy-MM-dd), null인 경우 기간 필터 미적용
+     * @param endDate   조회 종료일(yyyy-MM-dd), null인 경우 기간 필터 미적용
+     * @return 근태 정정 요청 리스트
+     *
+     * <p>
+     * ※ 개인 근태/초과 근무와 동일하게, 근태 정정 목록/카운트 쿼리에서도
+     *    {@code startDate}, {@code endDate} 필터를 동일하게 유지하기 위해
+     *    메서드 간 파라미터 구조가 중복되는 패턴입니다.
+     * </p>
+     */
     List<CorrectionDTO> selectCorrectionPage(
             @Param("offset") int offset,
             @Param("size") int size,
@@ -110,7 +127,31 @@ public interface AttendanceMapper {
             @Param("endDate") String endDate
     );
 
+    /**
+     * 근태 정정(출퇴근 시간 수정) 요청 총 개수를 조회합니다.
+     *
+     * @param startDate 조회 시작일(yyyy-MM-dd), null인 경우 기간 필터 미적용
+     * @param endDate   조회 종료일(yyyy-MM-dd), null인 경우 기간 필터 미적용
+     * @return 근태 정정 요청 총 개수
+     *
+     * <p>
+     * ※ 목록 조회(selectCorrectionPage)와 동일한 기간 필터를 적용하기 위해
+     *    {@code startDate}, {@code endDate} 파라미터가 메서드 간 중복되어 있습니다.
+     * </p>
+     */
     int selectCorrectionCount(
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate
+    );
+
+    List<ChangeLogDTO> selectChangeLogPage(
+            @Param("offset") int offset,
+            @Param("size") int size,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate
+    );
+
+    int selectChangeLogCount(
             @Param("startDate") String startDate,
             @Param("endDate") String endDate
     );
