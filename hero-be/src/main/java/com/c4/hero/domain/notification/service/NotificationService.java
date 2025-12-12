@@ -80,7 +80,7 @@ public class NotificationService {
      * @param employeeId 직원 ID
      * @return List<NotificationDTO> 알림 목록
      */
-    public List<NotificationDTO> selectAllNotification(Integer employeeId) {
+    public List<NotificationDTO> registAllNotification(Integer employeeId) {
         return notificationMapper.selectAllNotification(employeeId);
     }
 
@@ -90,7 +90,7 @@ public class NotificationService {
      * @param employeeId 직원 ID
      * @return int 미읽은 알림 개수
      */
-    public int countUnreadNotification(Integer employeeId) {
+    public int findUnreadNotification(Integer employeeId) {
         return notificationMapper.countUnreadNotification(employeeId);
     }
 
@@ -100,7 +100,7 @@ public class NotificationService {
      * @param notificationId 알림 ID
      */
     @Transactional
-    public void updateIsRead(Integer notificationId) {
+    public void ModifyIsRead(Integer notificationId) {
         notificationMapper.updateIsRead(notificationId);
         log.info("알림 읽음 처리: notificationId={}", notificationId);
     }
@@ -111,7 +111,7 @@ public class NotificationService {
      * @param employeeId 직원 ID
      */
     @Transactional
-    public void updateAllIsRead(Integer employeeId) {
+    public void ModifyAllIsRead(Integer employeeId) {
         notificationMapper.updateAllIsRead(employeeId);
         log.info("모든 알림 읽음 처리: employeeId={}", employeeId);
     }
