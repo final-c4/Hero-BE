@@ -20,7 +20,7 @@ import java.util.List;
  * </pre>
  *
  * @author 이지윤
- * @version 2.0
+ * @version 1.0
  */
 @RestController
 @RequiredArgsConstructor

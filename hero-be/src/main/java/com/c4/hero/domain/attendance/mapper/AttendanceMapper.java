@@ -16,13 +16,10 @@ import java.util.List;
  *
  * History
  * 2025/12/09 (이지윤) 최초 작성
- * 2025/12/10 (이지윤) 초과 근무 조회 메서드 추가
- * 2025/12/10 (이지윤) 근태 정정 조회 메서드 추가
- * 2025/12/11 (이지윤) 근무제 수정 조회 메서드 추가
  * </pre>
  *
  * @author 이지윤
- * @version 4.0
+ * @version 1.0
  */
 @Mapper
 public interface AttendanceMapper {
