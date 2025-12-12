@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * <pre>
- * Class Name: NotificationDto
+ * Class Name: NotificationRegistDTO
  * Description: 알림 데이터 전송 객체
  *
  * History
