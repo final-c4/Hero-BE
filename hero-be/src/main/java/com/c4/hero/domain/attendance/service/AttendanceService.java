@@ -10,16 +10,18 @@ import java.util.List;
 /**
  * <pre>
  * Class Name: AttendanceService
- * Description: 근태 기록(개인 근태, 초과 근무 등) 조회 관련 비즈니스 로직을 처리하는 서비스 클래스
+ * Description: 근태 기록(개인 근태, 초과 근무, 근태 기록 수정 이력, 근무제 정정 이력 등)
+   조회 관련 비즈니스 로직을 처리하는 서비스 클래스
  *
  * History
  * 2025/12/09 (이지윤) 최초 작성 및 컨벤션 적용
  * 2025/12/10 (이지윤) 초과 근무 조회 로직 및 공통 페이징 응답 DTO 적용
  * 2025/12/11 (이지윤) 근태 기록 수정 로직 및 공통 페이지 응답 DTO 적용
+ * 2025/12/12 (이지윤) 근무제 정정 로직 및 공통 페이지 응답 DTO 적용
  * </pre>
  *
  * @author 이지윤
- * @version 2.0
+ * @version 4.0
  */
 @Service
 @RequiredArgsConstructor
@@ -139,7 +141,7 @@ public class AttendanceService {
      * @param size      페이지당 데이터 개수
      * @param startDate 조회 시작일(yyyy-MM-dd), null인 경우 기간 필터 미적용
      * @param endDate   조회 종료일(yyyy-MM-dd), null인 경우 기간 필터 미적용
-     * @return 초과 근무 기록 페이지 응답 DTO
+     * @return 근태 기록 수정 페이지 응답 DTO
      */
     public PageResponseDTO<CorrectionDTO> getCorrectionList(
             int page,
@@ -183,6 +185,15 @@ public class AttendanceService {
         );
     }
 
+    /**
+     * 근무제 정정 페이지를 조회합니다.
+     *
+     * @param page      요청 페이지 번호 (1부터 시작)
+     * @param size      페이지당 데이터 개수
+     * @param startDate 조회 시작일(yyyy-MM-dd), null인 경우 기간 필터 미적용
+     * @param endDate   조회 종료일(yyyy-MM-dd), null인 경우 기간 필터 미적용
+     * @return 근무제 정정 기록 페이지 응답 DTO
+     */
     public PageResponseDTO<ChangeLogDTO> getChangeLogList(
             int page,
             int size,

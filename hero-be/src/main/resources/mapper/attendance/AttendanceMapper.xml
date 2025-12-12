@@ -11,6 +11,7 @@
     2025/12/09 (이지윤) 최초 작성 및 컨벤션 적용
     2025/12/10 (이지윤) 초과 근무(Overtime) 조회 쿼리 추가
     2025/12/10 (이지윤) 근태 정정(Correction) 조회 쿼리 추가
+    2025/12/10 (이지윤) 근무제 변경 이력(ChangeLog) 조회 쿼리 추가
     ============================================================
 -->
 
@@ -62,13 +63,17 @@
         <result property="newEndTime"   column="corrected_end"/>
     </resultMap>
 
+    <!-- ============================================================
+         1-4) 근무제 변경 이력 ResultMap
+              ChangeLogDTO 매핑 정의
+         ============================================================ -->
     <resultMap id="ChangeLogMap" type="com.c4.hero.domain.attendance.dto.ChangeLogDTO">
         <result property="workSystemChangeLogId" column="work_system_change_log_id"/>
-        <result property="date" column="date"/>
-        <result property="changeReason" column="change_reason"/>
-        <result property="startTime" column="start_time"/>
-        <result property="endTime" column="end_time"/>
-        <result property="workSystemName" column="template_name"/>
+        <result property="date"                  column="date"/>
+        <result property="changeReason"          column="change_reason"/>
+        <result property="startTime"             column="start_time"/>
+        <result property="endTime"               column="end_time"/>
+        <result property="workSystemName"        column="template_name"/>
     </resultMap>
 
     <!-- ============================================================
@@ -210,6 +215,10 @@
         </where>
     </select>
 
+    <!-- ============================================================
+         8) 근무제 변경 이력(Change Log) SELECT (페이지 조회)
+            AttendanceMapper.selectChangeLogPage(...)
+         ============================================================ -->
     <select id="selectChangeLogPage" resultMap="ChangeLogMap" parameterType="map">
         SELECT
         cha.work_system_change_log_id,
@@ -231,6 +240,10 @@
         LIMIT #{size} OFFSET #{offset}
     </select>
 
+    <!-- ============================================================
+         9) 근무제 변경 이력(Change Log) 총 개수 조회
+            AttendanceMapper.selectChangeLogCount(...)
+         ============================================================ -->
     <select id="selectChangeLogCount" resultType="int" parameterType="map">
         SELECT COUNT(*)
         FROM tbl_work_system_change_log cha
