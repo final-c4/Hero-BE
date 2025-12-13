@@ -1,5 +1,8 @@
 package com.c4.hero.domain.attendance.service;
 
+import com.c4.hero.common.pagination.PageCalculator;
+import com.c4.hero.common.pagination.PageInfo;
+import com.c4.hero.common.response.PageResponse;
 import com.c4.hero.domain.attendance.dto.*;
 import com.c4.hero.domain.attendance.mapper.AttendanceMapper;
 import lombok.RequiredArgsConstructor;
@@ -36,47 +39,32 @@ public class AttendanceService {
      * @param endDate   조회 종료일(yyyy-MM-dd), null인 경우 기간 필터 미적용
      * @return 개인 근태 기록 페이지 응답 DTO
      */
-    public PageResponseDTO<PersonalDTO> getPersonalList(
+    public PageResponse<PersonalDTO> getPersonalList(
             int page,
             int size,
             String startDate,
             String endDate
     ) {
-        // 0. 페이지/사이즈 유효 범위 보정
-        int safePage = Math.max(page, 1);
-        int safeSize = Math.max(size, 1);
-
-        // 1. 전체 개수 조회 (날짜 필터 반영)
+        //1. 전체 개수 조회 (날짜 필터 반영)
         int totalCount = attendanceMapper.selectPersonalCount(startDate, endDate);
-        int totalPages = (int) Math.ceil((double) totalCount / safeSize);
 
-        // 2. 페이지 번호 보정
-        if (totalPages == 0) {
-            // 데이터가 하나도 없는 경우: 페이지를 1로 고정
-            safePage = 1;
-        } else if (safePage > totalPages) {
-            // 요청한 페이지가 너무 클 경우: 마지막 페이지로 보정
-            safePage = totalPages;
-        }
+        // 2. 페이지네이션 계산
+        PageInfo pageInfo = PageCalculator.calculate(page, size, totalCount);
 
-        // 3. OFFSET 계산 (보정된 safePage 기준)
-        int offset = (safePage - 1) * safeSize;
-
-        // 4. 현재 페이지 데이터 조회
+        // 3. 현재 페이지 데이터 조회
         List<PersonalDTO> items = attendanceMapper.selectPersonalPage(
-                offset,
-                safeSize,
+                pageInfo.getOffset(),
+                pageInfo.getSize(),
                 startDate,
                 endDate
         );
 
-        // 5. 페이지 응답 DTO 구성
-        return new PageResponseDTO<>(
+        // 4. 공통 PageResponse으로 응답
+        return PageResponse.of(
                 items,
-                safePage,
-                safeSize,
-                totalCount,
-                totalPages
+                pageInfo.getPage() - 1,
+                pageInfo.getSize(),
+                totalCount
         );
     }
 
@@ -89,45 +77,32 @@ public class AttendanceService {
      * @param endDate   조회 종료일(yyyy-MM-dd), null인 경우 기간 필터 미적용
      * @return 초과 근무 기록 페이지 응답 DTO
      */
-    public PageResponseDTO<OvertimeDTO> getOvertimeList(
+    public PageResponse<OvertimeDTO> getOvertimeList(
             int page,
             int size,
             String startDate,
             String endDate
     ) {
-        // 0. 페이지/사이즈 유효 범위 보정
-        int safePage = Math.max(page, 1);
-        int safeSize = Math.max(size, 1);
-
-        // 1. 전체 개수 조회 (날짜 필터 반영)
+        //1. 전체 개수 조회 (날짜 필터 반영)
         int totalCount = attendanceMapper.selectOvertimeCount(startDate, endDate);
-        int totalPages = (int) Math.ceil((double) totalCount / safeSize);
 
-        // 2. 페이지 번호 보정
-        if (totalPages == 0) {
-            safePage = 1;
-        } else if (safePage > totalPages) {
-            safePage = totalPages;
-        }
+        // 2. 페이지네이션 계산
+        PageInfo pageInfo = PageCalculator.calculate(page, size, totalCount);
 
-        // 3. OFFSET 계산 (보정된 safePage 기준)
-        int offset = (safePage - 1) * safeSize;
-
-        // 4. 현재 페이지 데이터 조회
+        // 3. 현재 페이지 데이터 조회
         List<OvertimeDTO> items = attendanceMapper.selectOvertimePage(
-                offset,
-                safeSize,
+                pageInfo.getOffset(),
+                pageInfo.getSize(),
                 startDate,
                 endDate
         );
 
-        // 5. 페이지 응답 DTO 구성
-        return new PageResponseDTO<>(
+        // 4. 공통 PageResponse으로 응답
+        return PageResponse.of(
                 items,
-                safePage,
-                safeSize,
-                totalCount,
-                totalPages
+                pageInfo.getPage() - 1,
+                pageInfo.getSize(),
+                totalCount
         );
     }
 
@@ -140,45 +115,32 @@ public class AttendanceService {
      * @param endDate   조회 종료일(yyyy-MM-dd), null인 경우 기간 필터 미적용
      * @return 근태 기록 수정 페이지 응답 DTO
      */
-    public PageResponseDTO<CorrectionDTO> getCorrectionList(
+    public PageResponse<CorrectionDTO> getCorrectionList(
             int page,
             int size,
             String startDate,
             String endDate
     ){
-        // 0. 페이지/사이즈 유효 범위 보정
-        int safePage = Math.max(page, 1);
-        int safeSize = Math.max(size, 1);
-
-        // 1. 전체 개수 조회 (날짜 필터 반영)
+        //1. 전체 개수 조회 (날짜 필터 반영)
         int totalCount = attendanceMapper.selectCorrectionCount(startDate, endDate);
-        int totalPages = (int) Math.ceil((double) totalCount / safeSize);
 
-        // 2. 페이지 번호 보정
-        if (totalPages == 0) {
-            safePage = 1;
-        } else if (safePage > totalPages) {
-            safePage = totalPages;
-        }
+        // 2. 페이지네이션 계산
+        PageInfo pageInfo = PageCalculator.calculate(page, size, totalCount);
 
-        // 3. OFFSET 계산 (보정된 safePage 기준)
-        int offset = (safePage - 1) * safeSize;
-
-        // 4. 현재 페이지 데이터 조회
+        // 3. 현재 페이지 데이터 조회
         List<CorrectionDTO> items = attendanceMapper.selectCorrectionPage(
-                offset,
-                safeSize,
+                pageInfo.getOffset(),
+                pageInfo.getSize(),
                 startDate,
                 endDate
         );
 
-        // 5. 페이지 응답 DTO 구성
-        return new PageResponseDTO<>(
+        // 4. 공통 PageResponse으로 응답
+        return PageResponse.of(
                 items,
-                safePage,
-                safeSize,
-                totalCount,
-                totalPages
+                pageInfo.getPage() - 1,
+                pageInfo.getSize(),
+                totalCount
         );
     }
 
@@ -191,45 +153,32 @@ public class AttendanceService {
      * @param endDate   조회 종료일(yyyy-MM-dd), null인 경우 기간 필터 미적용
      * @return 근무제 정정 기록 페이지 응답 DTO
      */
-    public PageResponseDTO<ChangeLogDTO> getChangeLogList(
+    public PageResponse<ChangeLogDTO> getChangeLogList(
             int page,
             int size,
             String startDate,
             String endDate
-    ){
-        // 0. 페이지/사이즈 유효 범위 보정
-        int safePage = Math.max(page, 1);
-        int safeSize = Math.max(size, 1);
-
-        // 1. 전체 개수 조회 (날짜 필터 반영)
+    ) {
+        //1. 전체 개수 조회 (날짜 필터 반영)
         int totalCount = attendanceMapper.selectChangeLogCount(startDate, endDate);
-        int totalPages = (int) Math.ceil((double) totalCount / safeSize);
 
-        // 2. 페이지 번호 보정
-        if (totalPages == 0) {
-            safePage = 1;
-        } else if (safePage > totalPages) {
-            safePage = totalPages;
-        }
+        // 2. 페이지네이션 계산
+        PageInfo pageInfo = PageCalculator.calculate(page, size, totalCount);
 
-        // 3. OFFSET 계산 (보정된 safePage 기준)
-        int offset = (safePage - 1) * safeSize;
-
-        // 4. 현재 페이지 데이터 조회
+        // 3. 현재 페이지 데이터 조회
         List<ChangeLogDTO> items = attendanceMapper.selectChangeLogPage(
-                offset,
-                safeSize,
+                pageInfo.getOffset(),
+                pageInfo.getSize(),
                 startDate,
                 endDate
         );
 
-        // 5. 페이지 응답 DTO 구성
-        return new PageResponseDTO<>(
+        // 4. 공통 PageResponse으로 응답
+        return PageResponse.of(
                 items,
-                safePage,
-                safeSize,
-                totalCount,
-                totalPages
+                pageInfo.getPage() - 1,
+                pageInfo.getSize(),
+                totalCount
         );
     }
 }

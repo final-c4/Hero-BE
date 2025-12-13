@@ -1,5 +1,6 @@
 package com.c4.hero.domain.attendance.controller;
 
+import com.c4.hero.common.response.PageResponse;
 import com.c4.hero.domain.attendance.dto.ChangeLogDTO;
 import com.c4.hero.domain.attendance.dto.CorrectionDTO;
 import com.c4.hero.domain.attendance.dto.OvertimeDTO;
@@ -44,7 +45,7 @@ public class AttendanceController {
      * @return 개인 근태 기록 페이지 응답 DTO
      */
     @GetMapping("/personal")
-    public PageResponseDTO<PersonalDTO> getPersonalList(
+    public PageResponse<PersonalDTO> getPersonalList(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String startDate,
@@ -54,7 +55,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/overtime")
-    public PageResponseDTO<OvertimeDTO> getOvertimeList(
+    public PageResponse<OvertimeDTO> getOvertimeList(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String startDate,
@@ -64,7 +65,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/correction")
-    public PageResponseDTO<CorrectionDTO> getCorrectionList(
+    public PageResponse<CorrectionDTO> getCorrectionList(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String startDate,
@@ -74,7 +75,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/changeLog")
-    public PageResponseDTO<ChangeLogDTO> getChangeLogList(
+    public PageResponse<ChangeLogDTO> getChangeLogList(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String startDate,
