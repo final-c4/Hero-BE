@@ -29,4 +29,22 @@ public interface EmployeeMapper {
      * @return 직원 엔티티 (Optional)
      */
     Optional<Employee> findById(Integer employeeId);
+
+    /**
+     * 모든 부서 이름을 조회합니다.
+     * @return 부서 이름 목록
+     */
+    List<String> findAllDepartmentNames();
+
+    /**
+     * 모든 직급 이름을 조회합니다.
+     * @return 직급 이름 목록
+     */
+    List<String> findAllGradeNames();
+
+    /**
+     * 모든 직책 이름을 조회합니다.
+     * @return 직책 이름 목록
+     */
+    List<String> findAllJobTitleNames();
 }

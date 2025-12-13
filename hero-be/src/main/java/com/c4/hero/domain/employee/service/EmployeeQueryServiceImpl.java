@@ -7,6 +7,7 @@ import com.c4.hero.common.util.EncryptionUtil;
 import com.c4.hero.domain.employee.dto.request.EmployeeSearchDTO;
 import com.c4.hero.domain.employee.dto.response.EmployeeDetailResponseDTO;
 import com.c4.hero.domain.employee.dto.response.EmployeeListResponseDTO;
+import com.c4.hero.domain.employee.dto.response.EmployeeSearchOptionsResponseDTO;
 import com.c4.hero.domain.employee.dto.response.MyInfoResponseDTO;
 import com.c4.hero.domain.employee.entity.Employee;
 import com.c4.hero.domain.employee.mapper.EmployeeMapper;
@@ -91,6 +92,19 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
         return convertToMyInfoDto(employee);
     }
 
+    @Override
+    public EmployeeSearchOptionsResponseDTO getEmployeeSearchOptions() {
+        List<String> departments = employeeMapper.findAllDepartmentNames();
+        List<String> grades = employeeMapper.findAllGradeNames();
+        List<String> jobTitles = employeeMapper.findAllJobTitleNames();
+
+        return EmployeeSearchOptionsResponseDTO.builder()
+                .department(departments)
+                .grade(grades)
+                .jobTitle(jobTitles)
+                .build();
+    }
+
     /* =================== private =================== */
 
     /**
@@ -137,6 +151,8 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
                 .employeeId(employee.getEmployeeId())
                 .employeeNumber(employee.getEmployeeNumber())
                 .employeeName(employee.getEmployeeName())
+                .gender(employee.getGender())
+                .evaluationPoint(employee.getEvaluationPoint())
                 .imagePath(employee.getImagePath())
                 .sealImageUrl(employee.getSealImageUrl())
                 .birthDate(employee.getBirthDate())
@@ -151,7 +167,7 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
                 .hireDate(employee.getHireDate())
                 .terminationDate((employee.getTerminationDate()))
                 .daysOfService(daysOfService)
-                .status(employee.getStatus().name())
+                .status(employee.getStatus().getDescription())
                 .retentionExpireAt(employee.getRetentionExpireAt())
                 .build();
     }
@@ -180,6 +196,7 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
                 .employeeNumber(employee.getEmployeeNumber())
                 .employeeName(employee.getEmployeeName())
                 .imagePath(employee.getImagePath())
+                .gender(employee.getGender())
                 .sealImageUrl(employee.getSealImageUrl())
                 .birthDate(employee.getBirthDate())
                 .contractType(employee.getContractType())
@@ -194,7 +211,7 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
                 .terminationDate((employee.getTerminationDate()))
                 .daysOfService(daysOfService)
                 .baseSalary(employee.getBaseSalary())
-                .status(employee.getStatus().name())
+                .status(employee.getStatus().getDescription())
                 .build();
     }
 }

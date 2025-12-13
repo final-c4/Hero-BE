@@ -31,6 +31,7 @@ public class MyInfoResponseDTO {
     private Integer employeeId;
     private String employeeNumber;
     private String employeeName;
+    private String gender;
     private String imagePath;       // 프로필 사진 경로
     private String sealImageUrl;    // 직인 이미지 경로
     private LocalDate birthDate;

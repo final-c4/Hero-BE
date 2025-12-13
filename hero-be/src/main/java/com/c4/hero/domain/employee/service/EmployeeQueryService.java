@@ -4,6 +4,7 @@ import com.c4.hero.common.response.PageResponse;
 import com.c4.hero.domain.employee.dto.request.EmployeeSearchDTO;
 import com.c4.hero.domain.employee.dto.response.EmployeeDetailResponseDTO;
 import com.c4.hero.domain.employee.dto.response.EmployeeListResponseDTO;
+import com.c4.hero.domain.employee.dto.response.EmployeeSearchOptionsResponseDTO;
 import com.c4.hero.domain.employee.dto.response.MyInfoResponseDTO;
 
 /**
@@ -39,4 +40,12 @@ public interface EmployeeQueryService {
      * @return 내 정보 DTO
      */
     MyInfoResponseDTO getMyInfo(Integer employeeId);
+
+
+    /**
+     * 부서, 직급, 직책 목록을 조회합니다.
+     *
+     * @return 검색 옵션 목록
+     */
+    EmployeeSearchOptionsResponseDTO getEmployeeSearchOptions();
 }

@@ -3,6 +3,7 @@ package com.c4.hero.domain.employee.controller;
 import com.c4.hero.common.response.ApiResponse;
 import com.c4.hero.common.response.PageResponse;
 import com.c4.hero.domain.auth.security.JwtUtil;
+import com.c4.hero.domain.employee.dto.response.EmployeeSearchOptionsResponseDTO;
 import com.c4.hero.domain.employee.dto.request.PasswordChangeRequestDTO;
 import com.c4.hero.domain.employee.dto.response.DepartmentHistoryResponseDTO;
 import com.c4.hero.domain.employee.dto.response.EmployeeDetailResponseDTO;
@@ -17,12 +18,10 @@ import com.c4.hero.domain.employee.dto.response.MyInfoResponseDTO;
 import com.c4.hero.domain.employee.service.EmployeePasswordService;
 import com.c4.hero.domain.employee.service.EmployeeCommandService;
 import com.c4.hero.domain.employee.service.EmployeeQueryService;
-import com.c4.hero.domain.employee.service.EmployeeCommandService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -81,6 +80,19 @@ public class EmployeeController {
         PageResponse<EmployeeListResponseDTO> result = employeeQueryService.getEmployees(searchDTO);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
+
+
+    /**
+     * 직원 검색에 사용될 옵션(부서, 직급, 직책 목록)을 조회합니다.
+     *
+     * @return 검색 옵션 목록
+     */
+    @GetMapping("/search-options")
+    public ResponseEntity<ApiResponse<EmployeeSearchOptionsResponseDTO>> getEmployeeSearchOptions() {
+        EmployeeSearchOptionsResponseDTO result = employeeQueryService.getEmployeeSearchOptions();
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
 
     /**
      * 직원 상세 정보 조회(단건)
