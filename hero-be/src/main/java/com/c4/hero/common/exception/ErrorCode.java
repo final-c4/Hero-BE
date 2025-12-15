@@ -132,9 +132,45 @@ public enum ErrorCode {
     /**
      * 지급 이력 있으면 급여 계좌 삭제 불가
      */
-    BANK_ACCOUNT_HAS_PAYMENT_HISTORY(HttpStatus.CONFLICT, "P004", "지급 이력이 있는 계좌는 삭제할 수 없습니다.");
+    BANK_ACCOUNT_HAS_PAYMENT_HISTORY(HttpStatus.CONFLICT, "P004", "지급 이력이 있는 계좌는 삭제할 수 없습니다."),
 
-    
+
+    // ===== 급여(Payroll) - 배치 관련 에러 =====
+    /**
+     *
+     */
+    PAYROLL_BATCH_DUPLICATED(HttpStatus.BAD_REQUEST, "P101", "해당 급여월 배치가 이미 존재합니다."),
+
+    /**
+     *
+     */
+    PAYROLL_BATCH_NOT_FOUND(HttpStatus.NOT_FOUND, "P102", "급여 배치를 찾을 수 없습니다."),
+
+    /**
+     *
+     */
+    PAYROLL_BATCH_NOT_CALCULATED(HttpStatus.BAD_REQUEST, "P103", "급여 계산이 완료되지 않은 배치입니다."),
+
+    /**
+     *
+     */
+    PAYROLL_BATCH_LOCKED(HttpStatus.CONFLICT, "P104", "확정된 배치는 수정/재계산할 수 없습니다."),
+
+    /**
+     *
+     */
+    PAYROLL_BATCH_INVALID_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "P105", "배치 상태 변경 순서가 올바르지 않습니다."),
+
+    /**
+     *
+     */
+    PAYROLL_ATTENDANCE_INVALID(HttpStatus.BAD_REQUEST, "P106", "근태 데이터가 없거나 이상치가 있어 급여 계산이 불가합니다."),
+
+    /**
+     *
+     */
+    PAYROLL_ATTENDANCE_LOG_NOT_FOUND(HttpStatus.BAD_REQUEST, "P107", "근태 로그가 없어 급여 계산이 불가합니다.");
+
     /** HTTP 상태 코드 */
     private final HttpStatus status;
 
