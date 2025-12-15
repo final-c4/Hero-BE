@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  */
 
 @Entity
-@Table(name = "tbl_notifications")
+@Table(name = "tbl_notification")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification {
@@ -78,10 +78,5 @@ public class Notification {
             this.isRead = false;
         }
     }
-
-    // 읽음 처리 메서드
-    public void markAsRead() {
-        this.isRead = true;
-        this.readAt = LocalDateTime.now();
-    }
+    
 }
