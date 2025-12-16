@@ -225,7 +225,7 @@ public class AttendanceService {
         //5. PageResponse로 변환(응답 전담)
         return PageResponse.of(
                 pageResult.getContent(),
-                pageResult.getNumber(),
+                pageResult.getNumber() + 1,
                 pageResult.getSize(),
                 pageResult.getTotalElements()
         );
