@@ -1,13 +1,12 @@
 package com.c4.hero.domain.vacation.dto;
 
 import com.c4.hero.domain.vacation.type.VacationStatus;
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 /**
  * <pre>

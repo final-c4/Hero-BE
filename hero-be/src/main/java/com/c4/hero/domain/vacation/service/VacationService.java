@@ -3,7 +3,6 @@ package com.c4.hero.domain.vacation.service;
 import com.c4.hero.common.pagination.PageCalculator;
 import com.c4.hero.common.pagination.PageInfo;
 import com.c4.hero.common.response.PageResponse;
-import com.c4.hero.domain.department.repository.DepartmentRepository;
 import com.c4.hero.domain.vacation.dto.DepartmentVacationDTO;
 import com.c4.hero.domain.vacation.dto.VacationHistoryDTO;
 import com.c4.hero.domain.vacation.repository.DepartmentVacationRepository;
@@ -12,8 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -43,6 +40,7 @@ public class VacationService {
     private final VacationRepository vacationRepository;
     private final DepartmentVacationRepository departmentVacationRepository;
 
+
     /**
      * 직원 휴가 이력을 페이지 단위로 조회합니다.
      *
@@ -57,6 +55,7 @@ public class VacationService {
             Integer employeeId,
             LocalDateTime startDate,
             LocalDateTime endDate,
+
             int page,
             int size
     ) {
