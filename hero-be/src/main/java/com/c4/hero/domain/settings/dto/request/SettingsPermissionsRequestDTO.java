@@ -1,7 +1,9 @@
 package com.c4.hero.domain.settings.dto.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -19,6 +21,8 @@ import java.util.List;
  */
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class SettingsPermissionsRequestDTO {
 	private Integer employeeId;
 	private List<Integer> roleIds;

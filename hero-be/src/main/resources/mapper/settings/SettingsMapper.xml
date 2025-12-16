@@ -55,6 +55,8 @@
                 SELECT DISTINCT e.employee_id
                 FROM tbl_employee e
                 LEFT JOIN tbl_department d ON e.department_id = d.department_id
+                LEFT JOIN tbl_grade g ON e.grade_id = g.grade_id
+                LEFT JOIN tbl_job_title jt ON e.job_title_id = jt.job_title_id
                 <where>
                     <if test="params.query != null and params.query != ''">
                         e.employee_name LIKE CONCAT('%', #{params.query}, '%')
@@ -78,10 +80,16 @@
             tbl_employee e
         LEFT JOIN
             tbl_department d ON e.department_id = d.department_id
+        LEFT JOIN
+            tbl_grade g ON e.grade_id = g.grade_id
+        LEFT JOIN
+            tbl_job_title jt ON e.job_title_id = jt.job_title_id
         <where>
             <if test="params.query != null and params.query != ''">
                 e.employee_name LIKE CONCAT('%', #{params.query}, '%')
                 OR d.department_name LIKE CONCAT('%', #{params.query}, '%')
+                OR g.grade LIKE CONCAT('%', #{params.query}, '%')
+                OR jt.job_title LIKE CONCAT('%', #{params.query}, '%')
             </if>
         </where>
     </select>
