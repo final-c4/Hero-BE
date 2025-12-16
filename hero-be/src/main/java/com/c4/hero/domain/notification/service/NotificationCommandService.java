@@ -15,23 +15,21 @@ import java.util.List;
 
 /**
  * <pre>
- * Class Name: NotificationService
- * Description: 알림 비즈니스 로직 처리
- *              알림 생성, 조회, 읽음 처리
- *              알림 삭제, 영구 삭제
+ * Class Name: NotificationCommandService
+ * Description: 알림 Command Service (생성, 수정, 삭제)
+ *              알림 생성, 읽음 처리, 삭제, 복구 담당
  *
  * History
- * 2025/12/11 (혜원) 최초 작성
- * 2025/12/15 (혜원) 알림 삭제 기능 추가
+ * 2025/12/16 (혜원) 최초작성 (CQRS 패턴 적용 - Command 분리)
  * </pre>
  *
  * @author 혜원
- * @version 2.0
+ * @version 1.0
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class NotificationService {
+public class NotificationCommandService {
 
     private final NotificationMapper notificationMapper;
     private final SimpMessagingTemplate messagingTemplate;
@@ -79,32 +77,12 @@ public class NotificationService {
     }
 
     /**
-     * 특정 직원의 알림 목록 조회
-     *
-     * @param employeeId 직원 ID
-     * @return List<NotificationDTO> 알림 목록
-     */
-    public List<NotificationDTO> registAllNotification(Integer employeeId) {
-        return notificationMapper.selectAllNotification(employeeId);
-    }
-
-    /**
-     * 미읽은 알림 개수 조회
-     *
-     * @param employeeId 직원 ID
-     * @return int 미읽은 알림 개수
-     */
-    public int findUnreadNotification(Integer employeeId) {
-        return notificationMapper.selectUnreadNotification(employeeId);
-    }
-
-    /**
      * 알림 읽음 처리
      *
      * @param notificationId 알림 ID
      */
     @Transactional
-    public void ModifyIsRead(Integer notificationId) {
+    public void modifyIsRead(Integer notificationId) {
         notificationMapper.updateIsRead(notificationId);
         log.info("알림 읽음 처리: notificationId={}", notificationId);
     }
@@ -115,7 +93,7 @@ public class NotificationService {
      * @param employeeId 직원 ID
      */
     @Transactional
-    public void ModifyAllIsRead(Integer employeeId) {
+    public void modifyAllIsRead(Integer employeeId) {
         notificationMapper.updateAllIsRead(employeeId);
         log.info("모든 알림 읽음 처리: employeeId={}", employeeId);
     }
@@ -137,7 +115,7 @@ public class NotificationService {
      * @param notificationId 알림 ID
      */
     @Transactional
-    public void restoreNotification(Integer notificationId) {
+    public void modifyNotification(Integer notificationId) {
         notificationMapper.updateNotification(notificationId);
         log.info("알림 복구 완료: notificationId={}", notificationId);
     }
@@ -151,16 +129,6 @@ public class NotificationService {
     public void removeNotification(Integer notificationId) {
         notificationMapper.deleteNotification(notificationId);
         log.info("알림 영구 삭제 완료: notificationId={}", notificationId);
-    }
-
-    /**
-     * 소프트 삭제된 알림 목록 조회
-     *
-     * @param employeeId 직원 ID
-     * @return 삭제된 알림 목록
-     */
-    public List<NotificationDTO> findDeletedNotifications(Integer employeeId) {
-        return notificationMapper.selectDeletedNotifications(employeeId);
     }
 
     /**
