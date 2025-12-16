@@ -21,10 +21,11 @@ import java.util.List;
  *
  * History
  * 2025/12/16 (혜원) 최초작성 (CQRS 패턴 적용 - Command 분리)
+
  * </pre>
  *
  * @author 혜원
- * @version 1.0
+ * @version 2.0
  */
 @Slf4j
 @Service
@@ -74,6 +75,26 @@ public class NotificationCommandService {
         }
 
         return notificationDTO;
+    }
+
+    /**
+     * 특정 직원의 알림 목록 조회
+     *
+     * @param employeeId 직원 ID
+     * @return List<NotificationDTO> 알림 목록
+     */
+    public List<NotificationDTO> registAllNotification(Integer employeeId) {
+        return notificationMapper.selectAllNotification(employeeId);
+    }
+
+    /**
+     * 미읽은 알림 개수 조회
+     *
+     * @param employeeId 직원 ID
+     * @return int 미읽은 알림 개수
+     */
+    public int findUnreadNotification(Integer employeeId) {
+        return notificationMapper.selectUnreadNotification(employeeId);
     }
 
     /**
@@ -129,6 +150,16 @@ public class NotificationCommandService {
     public void removeNotification(Integer notificationId) {
         notificationMapper.deleteNotification(notificationId);
         log.info("알림 영구 삭제 완료: notificationId={}", notificationId);
+    }
+
+    /**
+     * 소프트 삭제된 알림 목록 조회
+     *
+     * @param employeeId 직원 ID
+     * @return 삭제된 알림 목록
+     */
+    public List<NotificationDTO> findDeletedNotifications(Integer employeeId) {
+        return notificationMapper.selectDeletedNotifications(employeeId);
     }
 
     /**
