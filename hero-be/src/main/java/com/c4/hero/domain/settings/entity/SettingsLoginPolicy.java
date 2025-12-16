@@ -12,6 +12,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * <pre>
+ * Class Name: SettingsLoginPolicy
+ * Description: 로그인 정책 엔티티
+ *
+ * History
+ * 2025/12/16 (승건) 최초 작성
+ * </pre>
+ *
+ * @author 승건
+ * @version 1.0
+ */
 @Entity
 @Getter
 @Setter

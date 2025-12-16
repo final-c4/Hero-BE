@@ -9,6 +9,18 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * <pre>
+ * Class Name: SettingsDepartment
+ * Description: 부서 설정 엔티티
+ *
+ * History
+ * 2025/12/16 (승건) 최초 작성
+ * </pre>
+ *
+ * @author 승건
+ * @version 1.0
+ */
 @Entity
 @Getter
 @Builder

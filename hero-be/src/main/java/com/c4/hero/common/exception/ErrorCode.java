@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
  * 2025-12-09 (이승건) 토큰 재발급 관련 에러 추가
  * 2025-12-09 (이승건) Access Token 만료 에러 추가
  * 2025-12-16 (동근) 급여 관련 에러 코드 추가
+ * 2025-12-16 (승건) 부서장 관련 에러 코드 추가
  * </pre>
  *
  * @author 혜원
