@@ -37,12 +37,6 @@ public class EvaluationController {
      *     전체 평가 템플릿 데이터를 응답함
      */
     @GetMapping("/evaluation-template/selectall")
-//    public ResponseEntity<List<EvaluationTemplateResponseDTO>> selectAllTemplate(){
-//
-//        List<EvaluationTemplateResponseDTO> result = evaluationService.selectAllTemplate();
-//
-//        return ResponseEntity.ok(result);
-//    }
     public ResponseEntity<PageResponse<EvaluationTemplateResponseDTO>> selectAllTemplate(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -128,12 +122,6 @@ public class EvaluationController {
      *     전체 평가 가이드 데이터를 반환
      */
     @GetMapping("/evaluation-guide/selectall")
-//    public ResponseEntity<List<EvaluationGuideResponseDTO>> selectAllGuide(){
-//
-//        List<EvaluationGuideResponseDTO> result = evaluationService.selectAllGuide();
-//
-//        return ResponseEntity.ok(result);
-//    }
     public ResponseEntity<PageResponse<EvaluationGuideResponseDTO>> selectAllGuide(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -245,12 +233,6 @@ public class EvaluationController {
      *     전체 평가 데이터를 응답함
      */
     @GetMapping("/evaluation/selectall")
-//    public ResponseEntity<List<EvaluationResponseDTO>> selectAllEvaluation(){
-//
-//        List<EvaluationResponseDTO> result = evaluationService.selectAllEvaluation();
-//
-//        return ResponseEntity.ok(result);
-//    }
     public ResponseEntity<PageResponse<EvaluationResponseDTO>> selectAllEvaluation(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -330,10 +312,10 @@ public class EvaluationController {
      * @return result List<EvaluationFormResponseDTO>
      *     전체 평가서 데이터를 응답함
      */
-    @GetMapping("/evaluation-form/select/{id}")
-    public ResponseEntity<EvaluationFormResponseDTO> selectForm(@PathVariable Integer id){
+    @GetMapping("/evaluation-form/select/{evaluationId}/{employeeId}")
+    public ResponseEntity<EvaluationFormResponseDTO> selectForm(@PathVariable Integer evaluationId, @PathVariable Integer employeeId){
 
-        EvaluationFormResponseDTO result = evaluationService.selectForm(id);
+        EvaluationFormResponseDTO result = evaluationService.selectForm(evaluationId, employeeId);
 
         return ResponseEntity.ok(result);
     }

@@ -183,12 +183,6 @@ public class EvaluationService {
      * @return result PageResponse<EvaluationTemplateResponseDTO>
      *     전체 평가 템플릿 데이터를 응답함
      */
-//    public List<EvaluationTemplateResponseDTO> selectAllTemplate() {
-//
-//        List<EvaluationTemplateResponseDTO> result = evaluationTemplateMapper.selectAllTemplate();
-//
-//        return result;
-//    }
     public PageResponse<EvaluationTemplateResponseDTO> selectAllTemplate(
             int page,
             int size
@@ -427,12 +421,6 @@ public class EvaluationService {
      * @return result PageResponse<EvaluationGuideResponseDTO>
      *     전체 평가 가이드 데이터를 응답함
      */
-//    public List<EvaluationGuideResponseDTO> selectAllGuide() {
-//
-//        List<EvaluationGuideResponseDTO> result = evaluationGuideMapper.selectAllGuide();
-//
-//        return result;
-//    }
     public PageResponse<EvaluationGuideResponseDTO> selectAllGuide(int page, int size) {
 
         int offset = page * size;
@@ -597,12 +585,6 @@ public class EvaluationService {
      * @return result PageResponse<EvaluationResponseDTO>
      *      평가 전체 조회 데이터 반환
      */
-//    public List<EvaluationResponseDTO> selectAllEvaluation() {
-//
-//        List<EvaluationResponseDTO> result = evaluationMapper.selectAllEvaluation();
-//
-//        return result;
-//    }
     public PageResponse<EvaluationResponseDTO> selectAllEvaluation(int page, int size) {
 
         int offset = page * size;
@@ -776,9 +758,9 @@ public class EvaluationService {
      * @return result EvaluationFormResponseDTO
      *     평가서 pk로 특정 평가서 데이터를 응답함
      */
-    public EvaluationFormResponseDTO selectForm(Integer id) {
+    public EvaluationFormResponseDTO selectForm(Integer evaluationId, Integer employeeId) {
 
-        EvaluationFormResponseDTO result = evaluationFormMapper.selectForm(id);
+        EvaluationFormResponseDTO result = evaluationFormMapper.selectForm(evaluationId, employeeId);
 
         return result;
     }
@@ -799,13 +781,7 @@ public class EvaluationService {
                 ));
 
         /** 평가서 수정 */
-        form.setEvaluationId(updateDTO.getEvaluationFormEvaluationId());
-        form.setEmployeeId(updateDTO.getEvaluationFormEmployeeId());
-        form.setDepartmentId(updateDTO.getEvaluationFormDepartmentId());
         form.setCreatedAt(updateDTO.getEvaluationFormCreatedAt());
-        form.setTotal(updateDTO.getEvaluationFormTotal());
-        form.setTotalRank(updateDTO.getEvaluationFormTotalRank());
-        form.setTotalScore(updateDTO.getEvaluationFormTotalScore());
 
         formRepository.save(form);
         Integer formId = form.getFormId();
@@ -821,8 +797,6 @@ public class EvaluationService {
                         ErrorCode.ENTITY_NOT_FOUND, "수정할 평가서 항목이 없습니다."
                 ));
 
-                formItem.setFormId(updateDTO.getEvaluationFormFormId());
-                formItem.setSelectedItemId(itemDTO.getFormItemSelectedItemId());
                 formItem.setWeight(itemDTO.getFormItemWeight());
                 formItem.setDescription(itemDTO.getFormItemDescription());
 
@@ -875,6 +849,8 @@ public class EvaluationService {
         Integer evaluationId = form.getEvaluationId();
         Integer employeeId = form.getEmployeeId();
 
+        form.setTotal(updateDTO.getEvaluationFormTotal());
+
     /** 평가서 항목 + 점수 수정 */
 
         if (updateDTO.getFormItems() != null) {
@@ -886,8 +862,6 @@ public class EvaluationService {
                         ErrorCode.ENTITY_NOT_FOUND, "채점할 평가서 항목이 없습니다."
                 ));
 
-                formItem.setWeight(itemDTO.getFormItemWeight());
-                formItem.setDescription(itemDTO.getFormItemDescription());
                 formItemRepository.save(formItem);
 
                 ItemScoreUpdateDTO scoreDTO = itemDTO.getItemScore();

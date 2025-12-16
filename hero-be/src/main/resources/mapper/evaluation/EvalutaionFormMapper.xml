@@ -21,6 +21,8 @@
         <id property="evaluationFormFormId" column="form_id"/>
         <result property="evaluationFormEvaluationId" column="evaluation_id"/>
         <result property="evaluationFormEvaluationName" column="evaluation_name"/>
+        <result property="evaluationFormEvaluationEmployeeId" column="evaluation_employee_id"/>
+        <result property="evaluationFormEvaluationEmployeeName" column="evaluation_employee_name"/>
         <result property="evaluationFormEmployeeId" column="employee_id"/>
         <result property="evaluationFormEmployeeName" column="employee_name"/>
         <result property="evaluationFormDepartmentId" column="department_id"/>
@@ -31,6 +33,11 @@
         <result property="evaluationFormTotal" column="total"/>
         <result property="evaluationFormTotalRank" column="total_rank"/>
         <result property="evaluationFormTotalScore" column="total_score"/>
+        <result property="evaluationFormEvaluationPeriodId" column="evaluation_period_id"/>
+        <result property="evaluationFormEvaluationPeriodName" column="evaluation_period_name"/>
+        <result property="evaluationFormEvaluationPeriodStart" column="evaluation_period_start"/>
+        <result property="evaluationFormEvaluationPeriodEnd" column="evaluation_period_end"/>
+
 
         <collection property="formItems" ofType="com.c4.hero.domain.evaluation.dto.FormItemResponseDTO">
             <id property="formItemFormItemId" column="form_item_id"/>
@@ -38,13 +45,15 @@
             <result property="formItemSelectedItemId" column="selected_item_id"/>
             <result property="formItemSelectedItemItemName" column="selected_item_name"/>
             <result property="formItemSelectedItemItemDescription" column="selected_item_description"/>
+            <result property="formItemWeight" column="form_item_weight"/>
+            <result property="formItemDescription" column="form_item_description"/>
 
             <association property="itemScore" javaType="com.c4.hero.domain.evaluation.dto.ItemScoreResponseDTO">
-                <id property="ItemScoreItemScoreId" column="item_score_id"/>
-                <result property="ItemScoreFormItemId" column="item_score_form_item_id"/>
-                <result property="ItemScoreScore" column="score"/>
-                <result property="ItemScoreDescription" column="item_score_description"/>
-                <result property="ItemScoreRank" column="item_score_rank"/>
+                <id property="itemScoreItemScoreId" column="item_score_id"/>
+                <result property="itemScoreFormItemId" column="item_score_form_item_id"/>
+                <result property="itemScoreScore" column="score"/>
+                <result property="itemScoreDescription" column="item_score_description"/>
+                <result property="itemScoreRank" column="item_score_rank"/>
             </association>
 
             <collection property="criterias" ofType="com.c4.hero.domain.evaluation.dto.CriteriaResponseDTO">
@@ -63,6 +72,8 @@
             f.form_id AS form_id,
             e.evaluation_id AS evaluation_id,
             e.name AS evaluation_name,
+            e.employee_id AS evaluation_employee_id,
+            ee2.employee_name AS evaluation_employee_name,
             ee.employee_id AS employee_id,
             ee.employee_name AS employee_name,
             d.department_id AS department_id,
@@ -70,15 +81,21 @@
             f.created_at AS created_at,
             g.grade_id AS grade_id,
             g.grade AS grade,
-            f.total AS tatal,
+            f.total AS total,
             f.total_rank AS total_rank,
             f.total_score AS total_score,
+            p.evaluation_period_id AS evaluation_period_id,
+            p.name AS evaluation_period_name,
+            p.start AS evaluation_period_start,
+            p.end AS evaluation_period_end,
 
             ff.form_item_id AS form_item_id,
             f.form_id AS form_item_form_id,
             s.selected_item_id AS selected_item_id,
             t.item AS selected_item_name,
             t.description AS selected_item_description,
+            ff.weight AS form_item_weight,
+            ff.description AS form_item_description,
 
             ss.item_score_id AS item_score_id,
             ss.form_item_id AS item_score_form_item_id,
@@ -94,7 +111,9 @@
             c.max_score AS max_score
         FROM tbl_evaluation_form f
         JOIN tbl_evaluation e ON e.evaluation_id = f.evaluation_id
+        JOIN tbl_evaluation_period p ON p.evaluation_period_id = e.evaluation_period_id
         JOIN tbl_employee ee ON ee.employee_id = f.employee_id
+        JOIN tbl_employee ee2 ON e.employee_id = ee2.employee_id
         JOIN tbl_department d ON d.department_id = ee.department_id
         JOIN tbl_grade g ON g.grade_id = ee.grade_id
         JOIN tbl_form_item ff ON ff.form_id = f.form_id
@@ -109,6 +128,8 @@
             f.form_id AS form_id,
             e.evaluation_id AS evaluation_id,
             e.name AS evaluation_name,
+            e.employee_id AS evaluation_employee_id,
+            ee2.employee_name AS evaluation_employee_name,
             ee.employee_id AS employee_id,
             ee.employee_name AS employee_name,
             d.department_id AS department_id,
@@ -116,15 +137,21 @@
             f.created_at AS created_at,
             g.grade_id AS grade_id,
             g.grade AS grade,
-            f.total AS tatal,
+            f.total AS total,
             f.total_rank AS total_rank,
             f.total_score AS total_score,
+            p.evaluation_period_id AS evaluation_period_id,
+            p.name AS evaluation_period_name,
+            p.start AS evaluation_period_start,
+            p.end AS evaluation_period_end,
 
             ff.form_item_id AS form_item_id,
             f.form_id AS form_item_form_id,
             s.selected_item_id AS selected_item_id,
             t.item AS selected_item_name,
             t.description AS selected_item_description,
+            ff.weight AS form_item_weight,
+            ff.description AS form_item_description,
 
             ss.item_score_id AS item_score_id,
             ss.form_item_id AS item_score_form_item_id,
@@ -140,7 +167,9 @@
             c.max_score AS max_score
         FROM tbl_evaluation_form f
                  JOIN tbl_evaluation e ON e.evaluation_id = f.evaluation_id
+                 JOIN tbl_evaluation_period p ON p.evaluation_period_id = e.evaluation_period_id
                  JOIN tbl_employee ee ON ee.employee_id = f.employee_id
+                 JOIN tbl_employee ee2 ON e.employee_id = ee2.employee_id
                  JOIN tbl_department d ON d.department_id = ee.department_id
                  JOIN tbl_grade g ON g.grade_id = ee.grade_id
                  JOIN tbl_form_item ff ON ff.form_id = f.form_id
@@ -148,6 +177,7 @@
                  JOIN tbl_template_item t ON t.item_id = s.item_id
                  JOIN tbl_item_score ss ON ss.form_item_id = ff.form_item_id
                  JOIN tbl_criteria c ON c.item_id = t.item_id
-        WHERE f.form_id = #{formId}
+        WHERE e.evaluation_id = #{evaluationId}
+          AND ee.employee_id = #{employeeId}
     </select>
 </mapper>

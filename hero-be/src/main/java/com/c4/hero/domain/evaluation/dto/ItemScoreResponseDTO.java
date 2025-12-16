@@ -25,15 +25,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ItemScoreResponseDTO {
 
-    private Integer ItemScoreItemScoreId;
+    private Integer itemScoreItemScoreId;
 
-    private Integer ItemScoreFormItemId;
+    private Integer itemScoreFormItemId;
 
-    private Integer ItemScoreScore;
+    private Integer itemScoreScore;
 
-    private String ItemScoreDescription;
+    private String itemScoreDescription;
 
-    private String ItemScoreRank;
+    private String itemScoreRank;
 }
 
 

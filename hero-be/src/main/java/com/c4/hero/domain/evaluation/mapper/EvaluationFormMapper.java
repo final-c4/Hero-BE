@@ -22,5 +22,5 @@ import java.util.List;
 public interface EvaluationFormMapper {
     List<EvaluationFormResponseDTO> selectAllForm();
 
-    EvaluationFormResponseDTO selectForm(@Param("formId") Integer id);
+    EvaluationFormResponseDTO selectForm(@Param("evaluationId") Integer evaluationId, @Param("employeeId") Integer employeeId);
 }

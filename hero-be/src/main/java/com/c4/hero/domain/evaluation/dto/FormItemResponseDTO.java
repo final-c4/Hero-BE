@@ -37,6 +37,10 @@ public class FormItemResponseDTO {
 
     private String formItemSelectedItemItemDescription;
 
+    private Float formItemWeight;
+
+    private String formItemDescription;
+
     private ItemScoreResponseDTO itemScore;
 
     private List<CriteriaResponseDTO> criterias;

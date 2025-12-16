@@ -34,6 +34,10 @@ public class EvaluationFormResponseDTO {
 
     private String evaluationFormEvaluationName;
 
+    private Integer evaluationFormEvaluationEmployeeId;
+
+    private String evaluationFormEvaluationEmployeeName;
+
     private Integer evaluationFormEmployeeId;
 
     private String evaluationFormEmployeeName;
@@ -53,6 +57,14 @@ public class EvaluationFormResponseDTO {
     private String evaluationFormTotalRank;
 
     private Float evaluationFormTotalScore;
+
+    private Integer evaluationFormEvaluationPeriodId;
+
+    private String evaluationFormEvaluationPeriodName;
+
+    private LocalDateTime evaluationFormEvaluationPeriodStart;
+
+    private LocalDateTime evaluationFormEvaluationPeriodEnd;
 
     private List<FormItemResponseDTO> formItems;
 }
