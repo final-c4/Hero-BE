@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/notification/settings")
+@RequestMapping("/api/notifications/settings")
 @RequiredArgsConstructor
 public class NotificationSettingsController {
 
@@ -34,7 +34,7 @@ public class NotificationSettingsController {
      * @return 알림 설정
      */
     @GetMapping("/{employeeId}")
-    public ResponseEntity<NotificationSettingsDTO> findSettings(Integer employeeId) {
+    public ResponseEntity<NotificationSettingsDTO> findSettings(@PathVariable("employeeId") Integer employeeId) {
         log.info("알림 설정 조회 API 호출: employeeId={}", employeeId);
 
         NotificationSettingsDTO findedSettings = settingsService.findSettingsByEmployeeId(employeeId);
