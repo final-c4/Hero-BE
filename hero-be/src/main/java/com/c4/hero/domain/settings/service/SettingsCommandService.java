@@ -193,7 +193,14 @@ public class SettingsCommandService {
 				boolean isSystemAdmin = account.getAccountRoles().stream()
 						.anyMatch(ar -> ar.getRole().getRole() == RoleType.SYSTEM_ADMIN);
 				if (!isSystemAdmin) {
-					account.getAccountRoles().removeIf(ar -> ar.getRole().getRoleId().equals(deptManagerRole.getRoleId()));
+					List<AccountRole> rolesToRemove = account.getAccountRoles().stream()
+							.filter(ar -> ar.getRole().getRoleId().equals(deptManagerRole.getRoleId()))
+							.collect(Collectors.toList());
+					if (!rolesToRemove.isEmpty()) {
+						account.getAccountRoles().removeAll(rolesToRemove);
+						accountRoleRepository.deleteAll(rolesToRemove);
+						accountRoleRepository.flush();
+					}
 				}
 			});
 		}
