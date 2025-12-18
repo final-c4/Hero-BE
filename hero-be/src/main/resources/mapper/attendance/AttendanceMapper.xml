@@ -136,6 +136,7 @@
         SUM(CASE WHEN att.state = '정상' THEN 1 ELSE 0 END) AS workDays,
         SUM(CASE WHEN att.state = '지각' THEN 1 ELSE 0 END) AS lateCount,
         SUM(CASE WHEN att.state = '결근' THEN 1 ELSE 0 END) AS absentCount,
+        SUM(CASE WHEN att.state = '조퇴' THEN 1 ELSE 0 END) AS earlyCount,
         (
             SELECT wst.name
             FROM tbl_attendance att2

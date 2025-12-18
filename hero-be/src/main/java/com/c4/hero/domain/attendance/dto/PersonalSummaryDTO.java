@@ -37,4 +37,7 @@ public class PersonalSummaryDTO {
 
     /** 이번 달 결근 횟수 */
     private Integer absentCount;
+
+    /** 이번 달 조퇴 횟수 */
+    private Integer earlyCount;
 }
