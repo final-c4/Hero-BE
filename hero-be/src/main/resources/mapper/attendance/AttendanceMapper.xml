@@ -198,7 +198,7 @@
     </select>
 
     <!-- ============================================================
-         6) 근태 정정(Correction) 기록 SELECT (페이지 조회)
+         4-1) 근태 정정(Correction) 기록 SELECT (페이지 조회)
             AttendanceMapper.selectCorrectionPage(...)
          ============================================================ -->
     <select id="selectCorrectionPage" resultMap="CorrectionMap" parameterType="map">
@@ -214,6 +214,7 @@
         JOIN tbl_attendance att
         ON cor.attendance_id = att.attendance_id
         <where>
+            AND cor.employee_id = #{employeeId}
             <if test="startDate != null and startDate != ''">
                 AND cor.target_date &gt;= #{startDate}
             </if>
@@ -226,7 +227,7 @@
     </select>
 
     <!-- ============================================================
-         7) 근태 정정(Correction) 기록 총 개수 조회
+         4-2) 근태 정정(Correction) 기록 총 개수 조회
             AttendanceMapper.selectCorrectionCount(...)
          ============================================================ -->
     <select id="selectCorrectionCount" resultType="int" parameterType="map">
@@ -235,6 +236,7 @@
         JOIN tbl_attendance att
         ON cor.attendance_id = att.attendance_id
         <where>
+            AND cor.employee_id = #{employeeId}
             <if test="startDate != null and startDate != ''">
                 AND cor.target_date &gt;= #{startDate}
             </if>

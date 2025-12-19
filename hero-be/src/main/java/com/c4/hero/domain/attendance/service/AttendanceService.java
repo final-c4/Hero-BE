@@ -166,6 +166,7 @@ public class AttendanceService {
     /**
      * 초과 근무(연장 근무) 기록 페이지를 조회합니다.
      *
+     * @param employeeId 로그인한 사람의 정보 확인
      * @param page      요청 페이지 번호 (1부터 시작)
      * @param size      페이지당 데이터 개수
      * @param startDate 조회 시작일(yyyy-MM-dd), null인 경우 기간 필터 미적용
@@ -213,32 +214,44 @@ public class AttendanceService {
     }
 
     /**
-     * 근태 기록 수정 페이지를 조회합니다.
+     * 초과 근무(연장 근무) 기록 페이지를 조회합니다.
      *
+     * @param employeeId 로그인한 사람의 정보 확인
      * @param page      요청 페이지 번호 (1부터 시작)
      * @param size      페이지당 데이터 개수
      * @param startDate 조회 시작일(yyyy-MM-dd), null인 경우 기간 필터 미적용
      * @param endDate   조회 종료일(yyyy-MM-dd), null인 경우 기간 필터 미적용
-     * @return 근태 기록 수정 페이지 응답 DTO
+     * @return 초과 근무 기록 페이지 응답 DTO
      */
     public PageResponse<CorrectionDTO> getCorrectionList(
-            int page,
-            int size,
+            Integer employeeId,
+            Integer page,
+            Integer size,
             String startDate,
             String endDate
-    ){
-        //1. 전체 개수 조회 (날짜 필터 반영)
-        int totalCount = attendanceMapper.selectCorrectionCount(startDate, endDate);
+    ) {
+        // 0. 기간 보정 공통 메서드 사용
+        DateRange range = resolvePersonalPeriod(startDate, endDate);
+        String finalStartDate = range.startDate();
+        String finalEndDate = range.endDate();
+
+        // 1. 전체 개수 조회 (기간 보정 반영)
+        int totalCount = attendanceMapper.selectCorrectionCount(
+                employeeId,
+                finalStartDate,
+                finalEndDate
+        );
 
         // 2. 페이지네이션 계산
         PageInfo pageInfo = PageCalculator.calculate(page, size, totalCount);
 
-        // 3. 현재 페이지 데이터 조회
+        // 3. 현재 페이지 데이터 조회 (★ 여기도 finalStartDate / finalEndDate 사용)
         List<CorrectionDTO> items = attendanceMapper.selectCorrectionPage(
+                employeeId,
                 pageInfo.getOffset(),
                 pageInfo.getSize(),
-                startDate,
-                endDate
+                finalStartDate,
+                finalEndDate
         );
 
         // 4. 공통 PageResponse으로 응답

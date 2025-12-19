@@ -41,18 +41,45 @@ public class AttendanceController {
     private final AttendanceService attendanceService;
     private final JwtUtil jwtUtil;
 
-    private Integer getEmployeeIdFromToken(HttpServletRequest request){
+    /**
+     * HTTP 요청 헤더에서 JWT 토큰을 추출하고, 토큰으로부터 employeeId를 반환합니다.
+     *
+     * <p>
+     * 인증이 완료된 요청을 전제로 하며,
+     * 내부적으로 {@code jwtUtil.resolveToken(request)} 를 통해 토큰을 추출하고,
+     * {@code jwtUtil.getEmployeeId(token)} 으로 사번(직원 ID)을 파싱합니다.
+     * </p>
+     *
+     * @param request 현재 HTTP 요청
+     * @return JWT에 포함된 직원 ID
+     */
+    private Integer getEmployeeIdFromToken(HttpServletRequest request) {
         String token = jwtUtil.resolveToken(request);
+
         return jwtUtil.getEmployeeId(token);
     }
 
-
+    /**
+     * 개인 근태 요약 정보를 조회합니다.
+     *
+     * <p>특징</p>
+     * <ul>
+     *     <li>JWT 토큰에서 직원 ID를 추출하여, 로그인한 본인의 근태 요약을 조회</li>
+     *     <li>{@code startDate}, {@code endDate}는 선택적으로 전달 가능 (yyyy-MM-dd 형식)</li>
+     *     <li>날짜가 전달되지 않으면 서비스 계층에서 기본 기간(예: 이번 달 기준)을 적용</li>
+     * </ul>
+     *
+     * @param request   HTTP 요청 (JWT 토큰 추출용)
+     * @param startDate 조회 시작일(yyyy-MM-dd), null/미전달 시 기본값 사용
+     * @param endDate   조회 종료일(yyyy-MM-dd), null/미전달 시 기본값 사용
+     * @return 개인 근태 요약 DTO
+     */
     @GetMapping("/personal/summary")
     public AttSummaryDTO getPersonalSummary(
             HttpServletRequest request,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate
-    ){
+    ) {
         Integer employeeId = getEmployeeIdFromToken(request);
 
         return attendanceService.getPersonalSummary(employeeId, startDate, endDate);
@@ -97,12 +124,15 @@ public class AttendanceController {
 
     @GetMapping("/correction")
     public PageResponse<CorrectionDTO> getCorrectionList(
+            HttpServletRequest request,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate
     ){
-        return attendanceService.getCorrectionList(page, size, startDate, endDate);
+        Integer employeeId = getEmployeeIdFromToken(request);
+
+        return attendanceService.getCorrectionList(employeeId, page, size, startDate, endDate);
     }
 
     @GetMapping("/changeLog")
