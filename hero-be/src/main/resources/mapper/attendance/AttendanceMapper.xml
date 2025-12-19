@@ -247,7 +247,7 @@
     </select>
 
     <!-- ============================================================
-         8) 근무제 변경 이력(Change Log) SELECT (페이지 조회)
+         5-1) 근무제 변경 이력(Change Log) SELECT (페이지 조회)
             AttendanceMapper.selectChangeLogPage(...)
          ============================================================ -->
     <select id="selectChangeLogPage" resultMap="ChangeLogMap" parameterType="map">
@@ -260,6 +260,7 @@
         cha.template_name
         FROM tbl_work_system_change_log cha
         <where>
+            AND cha.employee_id = #{employeeId}
             <if test="startDate != null and startDate != ''">
                 AND cha.date &gt;= #{startDate}
             </if>
@@ -272,13 +273,14 @@
     </select>
 
     <!-- ============================================================
-         9) 근무제 변경 이력(Change Log) 총 개수 조회
+         5-2) 근무제 변경 이력(Change Log) 총 개수 조회
             AttendanceMapper.selectChangeLogCount(...)
          ============================================================ -->
     <select id="selectChangeLogCount" resultType="int" parameterType="map">
         SELECT COUNT(*)
         FROM tbl_work_system_change_log cha
         <where>
+            AND cha.employee_id = #{employeeId}
             <if test="startDate != null and startDate != ''">
                 AND cha.date &gt;= #{startDate}
             </if>

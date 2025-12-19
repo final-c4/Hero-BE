@@ -186,6 +186,7 @@ public interface AttendanceMapper {
     /**
      * 근무제 정정 요청 목록(페이지)을 조회합니다.
      *
+     * @param employeeId 로그인한 사람의 정보 확인
      * @param offset    조회 시작 위치 (0부터 시작)
      * @param size      페이지당 데이터 개수
      * @param startDate 조회 시작일(yyyy-MM-dd), null인 경우 기간 필터 미적용
@@ -200,8 +201,9 @@ public interface AttendanceMapper {
      */
 
     List<ChangeLogDTO> selectChangeLogPage(
-            @Param("offset") int offset,
-            @Param("size") int size,
+            @Param("employeeId")  Integer employeeId,
+            @Param("offset") Integer offset,
+            @Param("size") Integer size,
             @Param("startDate") String startDate,
             @Param("endDate") String endDate
     );
@@ -209,6 +211,7 @@ public interface AttendanceMapper {
     /**
      * 근무제 정정 요청 총 개수를 조회합니다.
      *
+     * @param employeeId 로그인한 사람의 정보 확인
      * @param startDate 조회 시작일(yyyy-MM-dd), null인 경우 기간 필터 미적용
      * @param endDate   조회 종료일(yyyy-MM-dd), null인 경우 기간 필터 미적용
      * @return 근무제 정정 요청 총 개수
@@ -219,6 +222,7 @@ public interface AttendanceMapper {
      * </p>
      */
     int selectChangeLogCount(
+            @Param("employeeId") Integer employeeId,
             @Param("startDate") String startDate,
             @Param("endDate") String endDate
     );

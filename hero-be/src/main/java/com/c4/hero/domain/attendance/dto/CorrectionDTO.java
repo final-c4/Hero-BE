@@ -15,7 +15,7 @@ import lombok.Setter;
  * </pre>
  *
  * @author 이지윤
- * @version 1.0
+ * @version 1.1
  */
 @AllArgsConstructor
 @NoArgsConstructor

@@ -137,12 +137,15 @@ public class AttendanceController {
 
     @GetMapping("/changeLog")
     public PageResponse<ChangeLogDTO> getChangeLogList(
+            HttpServletRequest request,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate
     ){
-        return attendanceService.getChangeLogList(page, size, startDate, endDate);
+        Integer employeeId = getEmployeeIdFromToken(request);
+
+        return attendanceService.getChangeLogList(employeeId, page, size, startDate, endDate);
     }
 
     /**
