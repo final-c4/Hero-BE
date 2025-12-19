@@ -2,9 +2,16 @@ package com.c4.hero.domain.payroll.batch.service;
 
 import com.c4.hero.common.exception.BusinessException;
 import com.c4.hero.common.exception.ErrorCode;
+import com.c4.hero.domain.payroll.batch.dto.PayrollBatchTargetEmployeeResponse;
+import com.c4.hero.domain.payroll.batch.entity.Payroll;
 import com.c4.hero.domain.payroll.batch.entity.PayrollBatch;
+import com.c4.hero.domain.payroll.batch.mapper.PayrollBatchQueryMapper;
 import com.c4.hero.domain.payroll.batch.repository.BatchRepository;
-import com.c4.hero.domain.payroll.common.enums.PayrollBatchStatus;
+import com.c4.hero.domain.payroll.batch.repository.PayrollRepository;
+import com.c4.hero.domain.payroll.common.type.PayrollBatchStatus;
+import com.c4.hero.domain.payroll.common.type.PayrollStatus;
+import com.c4.hero.domain.payroll.payment.entity.PaymentHistory;
+import com.c4.hero.domain.payroll.payment.repository.PaymentHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,26 +27,33 @@ import java.util.List;
  *  - 급여 배치 생성 (월 단위 중복 방지)
  *  - 급여 배치 계산 실행 요청 (상태/락 검증 후 계산 서비스 위임)
  *  - 급여 배치 확정 처리 (상태 전이)
+ *  - 확정된 배치 기준 급여 지급 처리(PaymentHistory 연동)
  *
  * 도메인 규칙
  *  - salaryMonth(YYYY-MM) 기준 배치는 1개만 존재 가능
  *  - CONFIRMED 상태 배치는 수정/재계산 불가 (Lock)
+ *  - FAILED 상태 급여가 존재하는 배치는 확정/지급 불가
  *
  * History
  *  2025/12/15 - 동근 최초 작성
+ *  2025/12/18 - 동근 급여 지급(pay) 로직 및 PaymentHistory 연동 추가
+ *             - 클래스 레벨 트랜잭션 제거 및 상태 전이 트랜잭션 분리
  * </pre>
  *
  *  @author 동근
- *  @version 1.0
+ *  @version 1.1
  */
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class PayrollBatchService {
 
     private final BatchRepository batchRepository;
     private final PayrollCalculationService calculationService;
+    private final PayrollBatchStatusTxService batchStatusTxService;
+    private final PayrollRepository payrollRepository;
+    private final PayrollBatchQueryMapper batchQueryMapper;
+    private final PaymentHistoryRepository paymentHistoryRepository;
 
     /**
      * 급여 배치 생성
@@ -50,6 +64,7 @@ public class PayrollBatchService {
      * @throws BusinessException PAYROLL_BATCH_DUPLICATED
      *         동일 월의 배치가 이미 존재하는 경우
      */
+    @Transactional
     public Integer createBatch(String month) {
         if (batchRepository.existsBySalaryMonth(month)) {
             throw new BusinessException(ErrorCode.PAYROLL_BATCH_DUPLICATED);
@@ -60,18 +75,35 @@ public class PayrollBatchService {
     /**
      * 급여 배치 계산 실행
      *
-     * @param batchId      급여 배치 ID
-     * @param employeeIds  계산 대상 사원 ID 목록
+     * @param batchId     급여 배치 ID
+     * @param employeeIds 선택 사원 ID 목록
      */
     public void calculate(Integer batchId, List<Integer> employeeIds) {
-        PayrollBatch batch = batchRepository.findById(batchId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PAYROLL_BATCH_NOT_FOUND));
+        PayrollBatch batch = getBatchOrThrow(batchId);
 
-        if (batch.getStatus() == PayrollBatchStatus.CONFIRMED) {
+        if (batch.getStatus() == PayrollBatchStatus.CONFIRMED || batch.getStatus() == PayrollBatchStatus.PAID) {
             throw new BusinessException(ErrorCode.PAYROLL_BATCH_LOCKED);
         }
 
-        calculationService.calculateBatch(batch, employeeIds);
+        List<Integer> targets;
+        if (employeeIds == null || employeeIds.isEmpty()) {
+            targets = batchQueryMapper.selectBatchTargetEmployees()
+                    .stream()
+                    .map(PayrollBatchTargetEmployeeResponse::employeeId)
+                    .toList();
+        } else {
+            targets = employeeIds;
+        }
+
+        if (targets.isEmpty()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        calculationService.calculateEmployees(batch, targets);
+
+        if (batch.getStatus() == PayrollBatchStatus.READY) {
+            batchStatusTxService.markCalculatedInNewTx(batchId);
+        }
     }
 
     /**
@@ -79,10 +111,65 @@ public class PayrollBatchService {
      *
      * @param batchId 급여 배치 ID
      */
+    @Transactional
     public void confirm(Integer batchId) {
-        PayrollBatch batch = batchRepository.findById(batchId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PAYROLL_BATCH_NOT_FOUND));
+        PayrollBatch batch = getBatchOrThrow(batchId);
+
+        if (payrollRepository.existsByBatchIdAndStatus(batchId, PayrollStatus.FAILED)) {
+            throw new BusinessException(ErrorCode.PAYROLL_BATCH_HAS_FAILED);
+        }
+
+        payrollRepository.lockAllByBatchId(batchId);
         batch.confirm();
+    }
+
+    /**
+     * 배치 ID 기준 배치 조회 유틸리티
+     *
+     * @param batchId 배치 ID
+     * @return 조회된 PayrollBatch 엔티티
+     */
+    private PayrollBatch getBatchOrThrow(Integer batchId) {
+        return batchRepository.findById(batchId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PAYROLL_BATCH_NOT_FOUND));
+    }
+
+    /**
+     * 급여 배치 지급 처리
+     *
+     * @param batchId 급여 배치 ID
+     */
+    @Transactional
+    public void pay(Integer batchId) {
+        PayrollBatch batch = getBatchOrThrow(batchId);
+
+        // 상태 검증 => CONFIRMED만 지급 가능
+        if (batch.getStatus() != PayrollBatchStatus.CONFIRMED) {
+            throw new BusinessException(ErrorCode.PAYROLL_BATCH_INVALID_STATUS_TRANSITION);
+        }
+
+        // FAILED가 남아있으면 지급 막기 => confirm에서 걸러지지만 안정성 올리려고 추가해뒀습니당
+        if (payrollRepository.existsByBatchIdAndStatus(batchId, PayrollStatus.FAILED)) {
+            throw new BusinessException(ErrorCode.PAYROLL_BATCH_HAS_FAILED);
+        }
+
+        List<Payroll> payrolls = payrollRepository.findAllByBatchId(batchId);
+        if (payrolls.isEmpty()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "지급할 급여 데이터가 없습니다.");
+        }
+
+        for (Payroll pr : payrolls) {
+            if (paymentHistoryRepository.existsByPayrollId(pr.getPayrollId())) continue;
+
+            paymentHistoryRepository.save(
+                    PaymentHistory.completed(
+                            pr.getPayrollId(),
+                            pr.getTotalPay(),
+                            null
+                    )
+            );
+        }
+        batch.markPaid();
     }
 }
 

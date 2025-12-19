@@ -170,7 +170,12 @@ public enum ErrorCode {
     /**
      * 급여 계산에 필요한 근태 로그 자체가 존재하지 않는 경우
      */
-    PAYROLL_ATTENDANCE_LOG_NOT_FOUND(HttpStatus.BAD_REQUEST, "P107", "근태 로그가 없어 급여 계산이 불가합니다.");
+    PAYROLL_ATTENDANCE_LOG_NOT_FOUND(HttpStatus.BAD_REQUEST, "P107", "근태 로그가 없어 급여 계산이 불가합니다."),
+
+    /**
+     * 배치 확정 불가 - 실패 건 존재
+     */
+    PAYROLL_BATCH_HAS_FAILED(HttpStatus.CONFLICT, "P108", "실패(FAILED) 처리된 사원이 있어 배치를 확정할 수 없습니다.");
 
     /** HTTP 상태 코드 */
     private final HttpStatus status;
