@@ -82,7 +82,6 @@ class SettingsCommandServiceTest {
                 .build();
 
         SettingsApprovalRequestDTO request = SettingsApprovalRequestDTO.builder()
-                .templateId(templateId)
                 .lines(List.of(line1, line2))
                 .references(List.of(ref1))
                 .build();
@@ -92,7 +91,7 @@ class SettingsCommandServiceTest {
         given(templateRepository.findById(templateId)).willReturn(Optional.of(mockTemplate));
 
         // When (실행)
-        String result = approvalSettingsService.applySettings(request);
+        String result = approvalSettingsService.applySettings(templateId, request);
 
         // Then (검증)
         // 1. 리턴 메시지 확인
@@ -114,7 +113,6 @@ class SettingsCommandServiceTest {
         // Given
         Integer invalidTemplateId = 999;
         SettingsApprovalRequestDTO request = SettingsApprovalRequestDTO.builder()
-                .templateId(invalidTemplateId)
                 .lines(List.of())
                 .references(List.of())
                 .build();
@@ -123,7 +121,7 @@ class SettingsCommandServiceTest {
         given(templateRepository.findById(invalidTemplateId)).willReturn(Optional.empty());
 
         // When & Then (실행 및 예외 검증)
-        assertThatThrownBy(() -> approvalSettingsService.applySettings(request))
+        assertThatThrownBy(() -> approvalSettingsService.applySettings(invalidTemplateId, request))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode") // ErrorCode 필드가 있다면 검증
                 .isEqualTo(ErrorCode.ENTITY_NOT_FOUND);
@@ -141,7 +139,6 @@ class SettingsCommandServiceTest {
                 .build();
 
         SettingsApprovalRequestDTO request = SettingsApprovalRequestDTO.builder()
-                .templateId(templateId)
                 .lines(List.of(line)) // 결재선이 있어야 저장 로직을 탐
                 .references(List.of())
                 .build();
@@ -154,7 +151,7 @@ class SettingsCommandServiceTest {
                 .willThrow(new RuntimeException("DB Connection Error"));
 
         // When & Then
-        assertThatThrownBy(() -> approvalSettingsService.applySettings(request))
+        assertThatThrownBy(() -> approvalSettingsService.applySettings(templateId, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("기본결재선 적용 실패"); // 서비스 코드에서 throw하는 메시지
     }
