@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  *
  * History
  * 2025/12/14 (혜원) 최초 작성
- * 2025/12/19 (혜원) @Transactional 범위를 클래스에서 메소드 레벨로 축소 (#46)
+ * 2025/12/19 (혜원) @Transactional 범위를 클래스에서 메소드 레벨로 축소
  * </pre>
  *
  * @author 혜원
