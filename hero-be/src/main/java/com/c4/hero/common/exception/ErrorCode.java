@@ -181,7 +181,18 @@ public enum ErrorCode {
     /**
      * 급여 계산에 필요한 근태 로그 자체가 존재하지 않는 경우
      */
-    PAYROLL_ATTENDANCE_LOG_NOT_FOUND(HttpStatus.BAD_REQUEST, "P107", "근태 로그가 없어 급여 계산이 불가합니다.");
+    PAYROLL_ATTENDANCE_LOG_NOT_FOUND(HttpStatus.BAD_REQUEST, "P107", "근태 로그가 없어 급여 계산이 불가합니다."),
+
+    // ===== 승진(Promotion) 관련 에러 =====
+    /**
+     * 승진 계획을 찾을 수 없음
+     */
+    PROMOTION_PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "PR001", "해당 승진 계획을 찾을 수 없습니다."),
+
+    /**
+     * 올바르지 않은 승진 대상 직급
+     */
+    INVALID_PROMOTION_TARGET_GRADE(HttpStatus.BAD_REQUEST, "PR002", "올바르지 않은 승진 대상 직급입니다.");
 
     /** HTTP 상태 코드 */
     private final HttpStatus status;
