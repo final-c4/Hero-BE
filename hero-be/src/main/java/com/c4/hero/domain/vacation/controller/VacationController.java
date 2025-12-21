@@ -4,6 +4,7 @@ import com.c4.hero.common.response.PageResponse;
 import com.c4.hero.domain.auth.security.JwtUtil;
 import com.c4.hero.domain.vacation.dto.DepartmentVacationDTO;
 import com.c4.hero.domain.vacation.dto.VacationHistoryDTO;
+import com.c4.hero.domain.vacation.dto.VacationSummaryDTO;
 import com.c4.hero.domain.vacation.service.VacationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -115,4 +116,24 @@ public class VacationController {
     ) {
         return vacationService.findDepartmentVacationCalendar(departmentId, year, month);
     }
+
+    /**
+     * 로그인한 사용자의 휴가 요약 정보를 조회합니다.
+     *
+     * <p>특징</p>
+     * <ul>
+     *     <li>JWT 토큰에서 직원 ID를 추출하여, 본인의 휴가 요약을 조회</li>
+     *     <li>총 연차, 사용 연차, 잔여 연차, 소멸 예정 연차 등의 정보를 반환 (구현에 따라 구성)</li>
+     * </ul>
+     *
+     * @param request HTTP 요청 (JWT 토큰 추출용)
+     * @return 휴가 요약 정보를 담은 DTO
+     */
+    @GetMapping("/summary")
+    public VacationSummaryDTO getVacationSummary(HttpServletRequest request) {
+        Integer employeeId = getEmployeeIdFromToken(request);
+
+        return vacationService.findVacationLeaves(employeeId);
+    }
+
 }

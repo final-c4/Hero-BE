@@ -5,8 +5,11 @@ import com.c4.hero.common.pagination.PageInfo;
 import com.c4.hero.common.response.PageResponse;
 import com.c4.hero.domain.vacation.dto.DepartmentVacationDTO;
 import com.c4.hero.domain.vacation.dto.VacationHistoryDTO;
+import com.c4.hero.domain.vacation.dto.VacationSummaryDTO;
+import com.c4.hero.domain.vacation.entity.VacationLeave;
 import com.c4.hero.domain.vacation.repository.DepartmentVacationRepository;
 import com.c4.hero.domain.vacation.repository.VacationRepository;
+import com.c4.hero.domain.vacation.repository.VacationSummaryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,7 +42,7 @@ public class VacationService {
     /** 휴가 이력 조회를 위한 레포지토리 */
     private final VacationRepository vacationRepository;
     private final DepartmentVacationRepository departmentVacationRepository;
-
+    private final VacationSummaryRepository  vacationSummaryRepository;
 
     /**
      * 직원 휴가 이력을 페이지 단위로 조회합니다.
@@ -124,5 +127,21 @@ public class VacationService {
                 monthEnd
         );
     }
+
+    /**
+     * 직원의 휴가 요약 정보를 조회합니다.
+     *
+     * <p>
+     * 직원 ID를 기준으로 연차(휴가) 부여·사용·잔여 일수를 집계한
+     * 요약 정보를 조회합니다.
+     * </p>
+     *
+     * @param employeeId 조회 대상 직원 ID
+     * @return 휴가 요약 정보를 담은 DTO
+     */
+    public VacationSummaryDTO findVacationLeaves(Integer employeeId) {
+        return vacationSummaryRepository.findSummaryByEmployeeId(employeeId);
+    }
+
 
 }
