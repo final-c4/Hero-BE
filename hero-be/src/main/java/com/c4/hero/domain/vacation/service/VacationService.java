@@ -104,7 +104,7 @@ public class VacationService {
             Integer year,
             Integer month
     ){
-        LocalDate now = LocalDate.now(ZoneId.of("Asia/Shanghai"));
+        LocalDate now = LocalDate.now(ZoneId.of("Asia/Tokyo"));
 
 
         int targetYear = (year != null) ? year : now.getYear();
