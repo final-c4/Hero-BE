@@ -77,9 +77,21 @@ public interface DeptWorkSystemRepository extends JpaRepository<Attendance, Inte
                 """
     )
     Page<DeptWorkSystemDTO> findDeptWorkSystemRows(
+
             @Param("employeeId") Integer employeeId,
             @Param("departmentId") Integer departmentId,
             @Param("workDate") LocalDate workDate,
             Pageable pageable
     );
+
+    /**
+     * 근태 점수 대시보드 조회
+     *
+     * - 기간(startDate ~ endDate) 동안의 근태 이력을 기준으로
+     *   직원별 지각/결근 횟수 및 점수를 집계
+     * - departmentId가 null이면 전체 부서 대상으로 조회
+     *
+     * 점수 계산:
+     *   100 - (지각 × 1) - (결근 × 2)
+     */
 }

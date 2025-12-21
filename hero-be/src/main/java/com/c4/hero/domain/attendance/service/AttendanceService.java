@@ -20,7 +20,7 @@ import java.util.List;
  * <pre>
  * Class Name: AttendanceService
  * Description: 근태 기록(개인 근태, 초과 근무, 근태 기록 수정 이력, 근무제 정정 이력 등)
-   조회 관련 비즈니스 로직을 처리하는 서비스 클래스
+ 조회 관련 비즈니스 로직을 처리하는 서비스 클래스
  *
  * History
  * 2025/12/09 (이지윤) 최초 작성
@@ -303,11 +303,11 @@ public class AttendanceService {
      * @return PageResponse<DeptWorkSystemRowDTO>
      */
     public PageResponse<DeptWorkSystemDTO> getDeptWorkSystemList(
-        Integer employeeId,
-        Integer departmentId,
-        LocalDate workDate,
-        int page,
-        int size
+            Integer employeeId,
+            Integer departmentId,
+            LocalDate workDate,
+            int page,
+            int size
     ){
         // 1. workDate가 null이면 오늘 날짜로 기본값 처리
         LocalDate targetDate = (workDate != null) ? workDate : LocalDate.now();

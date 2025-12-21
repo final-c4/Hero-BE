@@ -51,6 +51,7 @@ public interface AttendanceMapper {
             @Param("employeeId") Integer employeeId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
+
     );
 
     /**
@@ -75,6 +76,7 @@ public interface AttendanceMapper {
             @Param("size") Integer size,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
+
     );
 
     /**
@@ -95,6 +97,7 @@ public interface AttendanceMapper {
             @Param("employeeId") Integer employeeId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
+
     );
 
 
@@ -120,6 +123,7 @@ public interface AttendanceMapper {
             @Param("size") Integer size,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
+
     );
 
     /**
@@ -139,6 +143,7 @@ public interface AttendanceMapper {
             @Param("employeeId") Integer employeeId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
+
     );
 
     /**
@@ -163,6 +168,7 @@ public interface AttendanceMapper {
             @Param("size") Integer size,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
+
     );
 
     /**
@@ -182,6 +188,7 @@ public interface AttendanceMapper {
             @Param("employeeId")  Integer employeeId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
+
     );
 
     /**
@@ -207,6 +214,7 @@ public interface AttendanceMapper {
             @Param("size") Integer size,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
+
     );
 
     /**
@@ -226,5 +234,6 @@ public interface AttendanceMapper {
             @Param("employeeId") Integer employeeId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
+
     );
 }
