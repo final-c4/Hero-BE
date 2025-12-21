@@ -1,9 +1,11 @@
 package com.c4.hero.domain.vacation.controller;
 
 import com.c4.hero.common.response.PageResponse;
+import com.c4.hero.domain.auth.security.JwtUtil;
 import com.c4.hero.domain.vacation.dto.DepartmentVacationDTO;
 import com.c4.hero.domain.vacation.dto.VacationHistoryDTO;
 import com.c4.hero.domain.vacation.service.VacationService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,6 +41,12 @@ public class VacationController {
 
     /** 휴가 도메인 비즈니스 로직을 처리하는 서비스 */
     private final VacationService vacationService;
+    private final JwtUtil jwtUtil;
+
+    private Integer getEmployeeIdFromToken(HttpServletRequest request) {
+        String token = jwtUtil.resolveToken(request);
+        return jwtUtil.getEmployeeId(token);
+    }
 
     /**
      * 개인 휴가 이력을 페이지 단위로 조회합니다.
@@ -51,7 +59,7 @@ public class VacationController {
      *     <li>페이지/사이즈 기반 페이지네이션 지원</li>
      * </ul>
      *
-     * @param employeeId 조회할 직원 ID (null 허용, 추후 인증 정보로 대체 가능)
+     * @param request 조회할 직원 ID (null 허용, 추후 인증 정보로 대체 가능)
      * @param startDate  조회 시작일(yyyy-MM-dd), null인 경우 시작일 제한 없음
      * @param endDate    조회 종료일(yyyy-MM-dd), null인 경우 종료일 제한 없음
      * @param page       요청 페이지 번호 (1부터 시작)
@@ -60,7 +68,7 @@ public class VacationController {
      */
     @GetMapping("/history")
     public PageResponse<VacationHistoryDTO> getVacationHistory(
-            @RequestParam(name = "employeeId", required = false) Integer employeeId,
+            HttpServletRequest request,
             @RequestParam(name = "startDate", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(name = "endDate", required = false)
@@ -68,14 +76,13 @@ public class VacationController {
             @RequestParam(name = "page", defaultValue = "1") Integer page,
             @RequestParam(name = "size", defaultValue = "10") Integer size
     ) {
-        // LocalDate → LocalDateTime 변환 (하루의 시작/끝으로 확장)
-        LocalDateTime startDateTime = (startDate != null) ? startDate.atStartOfDay() : null;
-        LocalDateTime endDateTime = (endDate != null) ? endDate.atTime(LocalTime.MAX) : null;
+
+        Integer employeeId = getEmployeeIdFromToken(request);
 
         return vacationService.findVacationHistory(
                 employeeId,
-                startDateTime,
-                endDateTime,
+                startDate,
+                endDate,
                 page,
                 size
         );
@@ -86,7 +93,6 @@ public class VacationController {
      *
      * <p>예시 요청</p>
      * <pre>
-     * GET /api/vacation/department/calendar?departmentId=1&year=2025&month=12
      * </pre>
      *
      * <p>특징</p>

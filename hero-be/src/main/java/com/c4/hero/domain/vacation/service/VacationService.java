@@ -53,25 +53,23 @@ public class VacationService {
      */
     public PageResponse<VacationHistoryDTO> findVacationHistory(
             Integer employeeId,
-            LocalDateTime startDate,
-            LocalDateTime endDate,
-
+            LocalDate startDate,
+            LocalDate endDate,
             int page,
             int size
     ) {
-        // 공통 페이지 계산 유틸을 통해 페이지/사이즈를 보정
-        // (실제 총 건수는 JPA Page에서 계산되므로 maxTotalCount는 의미상 상한값으로 사용)
-        PageInfo pageInfo = PageCalculator.calculate(
-                page,
-                size,
-                Integer.MAX_VALUE
-        );
+        // 1. page/size 방어 로직 (옵션)
+        int safePage = (page <= 0) ? 1 : page;
+        int safeSize = (size <= 0) ? 10 : size;   // 기본값 10 같은 것
 
+        // 2. Pageable 생성 (0-based 페이지 인덱스)
         PageRequest pageable = PageRequest.of(
-                pageInfo.getPage() - 1,
-                pageInfo.getSize()
+                safePage - 1,
+                safeSize
+                // 필요하면 Sort도 추가 가능: Sort.by(Sort.Direction.DESC, "startDate")
         );
 
+        // 3. JPA로 페이지 조회
         Page<VacationHistoryDTO> pageResult = vacationRepository.findVacationHistory(
                 employeeId,
                 startDate,
@@ -79,13 +77,15 @@ public class VacationService {
                 pageable
         );
 
+        // 4. 공통 PageResponse로 감싸서 리턴
         return PageResponse.of(
                 pageResult.getContent(),
-                pageResult.getNumber() + 1,      // 0-based → 1-based로 변환
+                pageResult.getNumber() + 1,          // 0-based → 1-based
                 pageResult.getSize(),
-                pageResult.getTotalElements()
+                (int) pageResult.getTotalElements()   // PageResponse가 int totalCount면 캐스팅
         );
     }
+
 
     /**
      * 부서 휴가 캘린더(월 단위) 조회

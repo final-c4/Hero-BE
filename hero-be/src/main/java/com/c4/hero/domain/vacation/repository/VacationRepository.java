@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 /**
  * <pre>
@@ -63,9 +63,8 @@ public interface VacationRepository extends JpaRepository<VacationLog, Integer> 
     )
     Page<VacationHistoryDTO> findVacationHistory(
             @Param("employeeId") Integer employeeId,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate,
-
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
             Pageable pageable
     );
 }
