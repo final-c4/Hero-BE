@@ -35,4 +35,6 @@ public interface SettingsDepartmentRepository extends JpaRepository<SettingsDepa
 	 * @return 부서 목록
 	 */
 	List<SettingsDepartment> findAllByDepartmentIdNotIn(List<Integer> departmentIds);
+
+    List<SettingsDepartment> findByDepartmentIdGreaterThan(int attr0);
 }

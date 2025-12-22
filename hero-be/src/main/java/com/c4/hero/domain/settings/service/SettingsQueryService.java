@@ -269,7 +269,7 @@ public class SettingsQueryService {
      * @return list 부서목록
      */
     public List<DepartmentResponseDTO> getApprovalDepartments() {
-        List<SettingsDepartment> departments = departmentRepository.findAll();
+        List<SettingsDepartment> departments = departmentRepository.findByDepartmentIdGreaterThan(0);
         List<DepartmentResponseDTO> departmentListDTOs = departments.stream().map(
                 department -> DepartmentResponseDTO.builder()
                         .departmentId(department.getDepartmentId())
