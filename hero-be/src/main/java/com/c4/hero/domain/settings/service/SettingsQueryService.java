@@ -11,10 +11,14 @@ import com.c4.hero.domain.employee.repository.EmployeeGradeRepository;
 import com.c4.hero.domain.employee.repository.EmployeeJobTitleRepository;
 import com.c4.hero.domain.employee.repository.EmployeeRepository;
 import com.c4.hero.domain.employee.repository.EmployeeRoleRepository;
+import com.c4.hero.domain.notification.service.WebSocketSessionManager;
 import com.c4.hero.domain.settings.dto.response.SettingsDepartmentManagerDTO;
 import com.c4.hero.domain.settings.dto.response.SettingsDepartmentResponseDTO;
 import com.c4.hero.domain.settings.dto.response.SettingsDocumentTemplateResponseDTO;
+import com.c4.hero.domain.settings.dto.response.SettingsNotificationHistoryResponseDTO;
+import com.c4.hero.domain.settings.dto.response.SettingsNotificationStatisticsResponseDTO;
 import com.c4.hero.domain.settings.dto.response.SettingsPermissionsResponseDTO;
+import com.c4.hero.domain.settings.dto.response.SettingsWebSocketHealthResponseDTO;
 import com.c4.hero.domain.settings.entity.SettingsDepartment;
 import com.c4.hero.domain.settings.mapper.SettingsMapper;
 import com.c4.hero.domain.settings.repository.SettingsDepartmentRepository;
@@ -23,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,10 +43,11 @@ import java.util.stream.Collectors;
  *
  * History
  * 2025/12/16 (승건) 최초 작성
+ * 2025/12/22 (혜원) 알림 관련 조회 기능 추가
  * </pre>
  *
  * @author 승건
- * @version 1.0
+ * @version 2.0
  */
 @Service
 @Transactional(readOnly = true)
@@ -59,6 +65,7 @@ public class SettingsQueryService {
 	private static final int TEMP_DEPARTMENT_ID = -1;
 
 	private final SettingsMapper settingsMapper;
+    private final WebSocketSessionManager webSocketSessionManager;
 
 	/**
 	 * 부서 트리 구조 조회
@@ -203,7 +210,6 @@ public class SettingsQueryService {
     /**
      * 문서 서식 목록
      *
-     * @param
      * @return List<SettingsDocumentTemplateResponseDTO>
      */
     public List<SettingsDocumentTemplateResponseDTO> getTemplates() {
@@ -223,5 +229,76 @@ public class SettingsQueryService {
         );
 
        return list;
+    }
+
+    /**
+     * 알림 발송 이력 조회
+     *
+     * @param pageable  페이징 정보
+     * @param startDate 조회 시작일
+     * @param endDate   조회 종료일
+     * @param type      알림 타입
+     * @return 알림 발송 이력 페이지 응답
+     */
+    public PageResponse<SettingsNotificationHistoryResponseDTO> getNotificationHistory(
+            Pageable pageable,
+            String startDate,
+            String endDate,
+            String type) {
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("startDate", startDate);
+        params.put("endDate", endDate);
+        params.put("type", type);
+
+        List<SettingsNotificationHistoryResponseDTO> content = settingsMapper.findNotificationHistory(params, pageable);
+        int total = settingsMapper.countNotificationHistory(params);
+
+        return PageResponse.of(content, pageable.getPageNumber(), pageable.getPageSize(), total);
+    }
+
+    /**
+     * 알림 발송 통계 조회
+     *
+     * @return 알림 발송 통계 DTO
+     */
+    public SettingsNotificationStatisticsResponseDTO getNotificationStatistics() {
+        Map<String, Object> statistics = settingsMapper.selectNotificationStatistics();
+
+        return SettingsNotificationStatisticsResponseDTO.builder()
+                .todayCount(((Number) statistics.get("todayCount")).intValue())
+                .weekCount(((Number) statistics.get("weekCount")).intValue())
+                .monthCount(((Number) statistics.get("monthCount")).intValue())
+                .totalCount(((Number) statistics.get("totalCount")).intValue())
+                .averageSuccessRate(((Number) statistics.get("averageSuccessRate")).doubleValue())
+                .activeConnections(webSocketSessionManager.getActiveConnectionCount())
+                .build();
+    }
+
+    /**
+     * WebSocket 연결 상태 Health Check
+     *
+     * @return WebSocket 연결 상태 DTO
+     */
+    public SettingsWebSocketHealthResponseDTO checkWebSocketHealth() {
+        // WebSocket 세션 정보 조회
+        List<SettingsWebSocketHealthResponseDTO.WebSocketSessionInfo> sessions =
+                webSocketSessionManager.getAllSessions().stream()
+                        .map(session -> SettingsWebSocketHealthResponseDTO.WebSocketSessionInfo.builder()
+                                .sessionId(session.getSessionId())
+                                .employeeId(session.getEmployeeId())
+                                .employeeName(session.getEmployeeName())
+                                .connectedAt(session.getConnectedAt())
+                                .build())
+                        .collect(Collectors.toList());
+
+        return SettingsWebSocketHealthResponseDTO.builder()
+                .status("UP")
+                .activeConnections(sessions.size())
+                .maxConnections(1000) // 설정값
+                .averageResponseTime(webSocketSessionManager.getAverageResponseTime())
+                .lastCheckTime(LocalDateTime.now())
+                .sessions(sessions)
+                .build();
     }
 }
