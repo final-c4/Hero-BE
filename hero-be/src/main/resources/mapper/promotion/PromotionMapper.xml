@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.c4.hero.domain.promotion.mapper.PromotionMapper">
+
+    <!-- ================================================= -->
+    <!-- ResultMaps                                        -->
+    <!-- ================================================= -->
+
+    <!-- 승진 계획 목록 조회를 위한 ResultMap -->
+    <resultMap id="promotionPlanResultMap" type="com.c4.hero.domain.promotion.dto.response.PromotionPlanResponseDTO">
+        <id property="promotionId" column="promotion_id"/>
+        <result property="planName" column="plan_name"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="nominationDeadlineAt" column="nomination_deadline_at"/>
+        <result property="appointmentAt" column="appointment_at"/>
+    </resultMap>
+
+    <!-- 승진 계획 상세 조회를 위한 ResultMap (하위 상세 계획 포함) -->
+    <resultMap id="promotionDetailPlanResultMap"
+               type="com.c4.hero.domain.promotion.dto.response.PromotionPlanDetailResponseDTO">
+        <id property="promotionId" column="promotion_id"/>
+        <result property="planName" column="plan_name"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="nominationDeadlineAt" column="nomination_deadline_at"/>
+        <result property="appointmentAt" column="appointment_at"/>
+        <result property="planContent" column="plan_content"/>
+        <collection property="detailPlan"
+                    javaType="java.util.List"
+                    ofType="com.c4.hero.domain.promotion.dto.PromotionDetailPlanDTO"
+                    select="findDetailPlanByPromotionId"
+                    column="promotion_id"/>
+    </resultMap>
+
+    <!-- 승진 상세 계획과 하위 후보자 목록을 위한 ResultMap -->
+    <resultMap id="detailPlanWithCandidatesMap" type="com.c4.hero.domain.promotion.dto.PromotionDetailPlanDTO">
+        <result property="departmentId" column="department_id"/>
+        <result property="department" column="department_name"/>
+        <result property="gradeId" column="grade_id"/>
+        <result property="grade" column="grade_name"/>
+        <result property="quotaCount" column="quota_count"/>
+        <collection property="candidateList"
+                    javaType="java.util.List"
+                    ofType="com.c4.hero.domain.promotion.dto.PromotionCandidateDTO"
+                    select="findCandidatesByDetailPlan"
+                    column="{promotionDetailId=promotion_detail_id}"/>
+    </resultMap>
+
+
+    <!-- ================================================= -->
+    <!-- SELECT Queries                                    -->
+    <!-- ================================================= -->
+
+    <!-- 승진 계획 목록 조회 (페이징) -->
+    <select id="selectPromotionPlan" resultMap="promotionPlanResultMap">
+        SELECT
+            promotion_plan_id AS promotion_id,
+            plan_name,
+            created_at,
+            nomination_deadline_at,
+            appointment_at
+        FROM
+            tbl_promotion_plan
+        <where>
+            <if test="isFinished != null and isFinished == true">
+                AND appointment_at &lt;= NOW()
+            </if>
+            <if test="isFinished != null and isFinished == false">
+                AND appointment_at &gt; NOW()
+            </if>
+        </where>
+        ORDER BY
+            created_at DESC
+        LIMIT
+            #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 승진 계획 전체 개수 조회 -->
+    <select id="countPromotionPlan" resultType="long">
+        SELECT
+            count(*)
+        FROM
+            tbl_promotion_plan
+        <where>
+            <if test="isFinished != null and isFinished == true">
+                AND appointment_at &lt;= NOW()
+            </if>
+            <if test="isFinished != null and isFinished == false">
+                AND appointment_at &gt; NOW()
+            </if>
+        </where>
+    </select>
+
+    <!-- 승진 계획 상세 정보 조회 -->
+    <select id="selectPromotionPlanDetail" resultMap="promotionDetailPlanResultMap">
+        SELECT
+            promotion_plan_id AS promotion_id,
+            plan_name,
+            created_at,
+            nomination_deadline_at,
+            appointment_at,
+            plan_content
+        FROM
+            tbl_promotion_plan
+        WHERE
+            promotion_plan_id = #{promotionId}
+    </select>
+
+    <!-- 특정 승진 계획에 속한 상세 계획 목록 조회 -->
+    <select id="findDetailPlanByPromotionId" resultMap="detailPlanWithCandidatesMap">
+        SELECT
+            pd.promotion_detail_id,
+            pd.promotion_plan_id,
+            d.department_id,
+            d.department_name,
+            g.grade_id,
+            g.grade AS grade_name,
+            pd.quota_count
+        FROM
+            tbl_promotion_detail pd
+        JOIN
+            tbl_department d ON pd.department_id = d.department_id
+        JOIN
+            tbl_grade g ON pd.grade_id = g.grade_id
+        WHERE
+            pd.promotion_plan_id = #{promotionId}
+    </select>
+
+    <!-- 특정 상세 계획에 속한 후보자 목록 조회 -->
+    <select id="findCandidatesByDetailPlan" resultType="com.c4.hero.domain.promotion.dto.PromotionCandidateDTO">
+        SELECT
+            c.employee_id,
+            e.employee_name,
+            e.employee_number,
+            d.department_name AS department,
+            g.grade AS grade,
+            n.employee_name AS nominatorName,
+            c.nomination_reason,
+            c.is_approved,
+            c.rejection_reason,
+            c.evaluation_point
+        FROM
+            tbl_promotion_candidate c
+        JOIN
+            tbl_employee e ON c.employee_id = e.employee_id
+        JOIN
+            tbl_department d ON e.department_id = d.department_id
+        JOIN
+            tbl_grade g ON e.grade_id = g.grade_id
+        LEFT JOIN
+            tbl_employee n ON c.nominator_id = n.employee_id
+        WHERE
+            c.promotion_detail_id = #{promotionDetailId}
+    </select>
+
+</mapper>
