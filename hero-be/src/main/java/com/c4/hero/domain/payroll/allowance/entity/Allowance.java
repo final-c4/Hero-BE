@@ -77,7 +77,6 @@ public class Allowance {
     private LocalDateTime updatedAt;
 
     // ===== 비즈니스 메서드 =====
-
     /**
      * 수당 항목 수정
      *
