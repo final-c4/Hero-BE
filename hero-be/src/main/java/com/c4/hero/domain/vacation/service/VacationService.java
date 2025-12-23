@@ -3,6 +3,7 @@ package com.c4.hero.domain.vacation.service;
 import com.c4.hero.common.pagination.PageCalculator;
 import com.c4.hero.common.pagination.PageInfo;
 import com.c4.hero.common.response.PageResponse;
+import com.c4.hero.domain.employee.repository.EmployeeRepository;
 import com.c4.hero.domain.vacation.dto.DepartmentVacationDTO;
 import com.c4.hero.domain.vacation.dto.VacationHistoryDTO;
 import com.c4.hero.domain.vacation.dto.VacationSummaryDTO;
@@ -10,13 +11,18 @@ import com.c4.hero.domain.vacation.entity.VacationLeave;
 import com.c4.hero.domain.vacation.repository.DepartmentVacationRepository;
 import com.c4.hero.domain.vacation.repository.VacationRepository;
 import com.c4.hero.domain.vacation.repository.VacationSummaryRepository;
+import com.google.api.services.calendar.model.Events;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -43,6 +49,7 @@ public class VacationService {
     private final VacationRepository vacationRepository;
     private final DepartmentVacationRepository departmentVacationRepository;
     private final VacationSummaryRepository  vacationSummaryRepository;
+    private final EmployeeRepository employeeRepository;
 
     /**
      * 직원 휴가 이력을 페이지 단위로 조회합니다.
@@ -96,18 +103,18 @@ public class VacationService {
      * - year/month가 null이면 서버 기준 현재 월로 조회합니다.
      * - departmentId가 null이면 전체 부서 휴가(필터 미적용)로 조회합니다.
      *
-     * @param departmentId 부서 ID (null 가능)
+     * @param employeeId   로그인한 사람의 ID (null 가능)
      * @param year         연도 (예: 2025, null 가능)
      * @param month        월 (1~12, null 가능)
      * @return 해당 월 범위에 "겹치는" 휴가 이벤트 목록
      */
 
     public List<DepartmentVacationDTO> findDepartmentVacationCalendar(
-            Integer departmentId,
+            Integer employeeId,
             Integer year,
             Integer month
     ){
-        LocalDate now = LocalDate.now(ZoneId.of("Asia/Tokyo"));
+        LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
 
         int targetYear = (year != null) ? year : now.getYear();
@@ -117,9 +124,14 @@ public class VacationService {
             throw new IllegalArgumentException("month는 1~12 범위여야 합니다. month=" + targetMonth);
         }
 
+        Integer departmentId = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 employeeId=" + employeeId))
+                .getEmployeeDepartment()
+                .getDepartmentId();
+
         LocalDate firstDay = LocalDate.of(targetYear, targetMonth, 1);
-        LocalDateTime monthStart = firstDay.atStartOfDay();
-        LocalDateTime monthEnd = firstDay.plusMonths(1).atStartOfDay().minusNanos(1);
+        LocalDate monthStart = firstDay;
+        LocalDate monthEnd = firstDay.plusMonths(1).minusDays(1);
 
         return departmentVacationRepository.findApprovedDepartmentVacationByMonth(
                 departmentId,
@@ -142,6 +154,5 @@ public class VacationService {
     public VacationSummaryDTO findVacationLeaves(Integer employeeId) {
         return vacationSummaryRepository.findSummaryByEmployeeId(employeeId);
     }
-
 
 }

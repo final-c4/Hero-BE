@@ -16,6 +16,8 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDate;
 
 
@@ -38,6 +40,7 @@ import java.time.LocalDate;
 @Table(name = "tbl_vacation_log")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Setter
 public class VacationLog {
 
     /** 휴가 이력 PK (식별자) */
@@ -70,4 +73,6 @@ public class VacationLog {
     @JoinColumn(name = "employee_id")
     private Employee employee;
 
+    @Column(name = "google_event_id")
+    private String googleEventId;
 }

@@ -103,18 +103,19 @@ public class VacationController {
      *     <li>일자별/직원별 휴가 현황을 캘린더 형태로 표현하기 위한 데이터 제공</li>
      * </ul>
      *
-     * @param departmentId 조회 대상 부서 ID (null인 경우 전체 부서)
+     * @param request      토큰에서 employeeId 가져오기 (null인 경우 전체 부서)
      * @param year         조회 연도 (null인 경우 현재 연도)
      * @param month        조회 월 (1~12, null인 경우 현재 월)
      * @return 부서 휴가 캘린더 구성을 위한 휴가 정보 리스트
      */
     @GetMapping("/department/calendar")
     public List<DepartmentVacationDTO> getDepartmentVacationCalendar(
-            @RequestParam(name = "departmentId", required = false) Integer departmentId,
+            HttpServletRequest request,
             @RequestParam(name = "year", required = false) Integer year,
             @RequestParam(name = "month", required = false) Integer month
     ) {
-        return vacationService.findDepartmentVacationCalendar(departmentId, year, month);
+        Integer employeeId = getEmployeeIdFromToken(request);
+        return vacationService.findDepartmentVacationCalendar(employeeId, year, month);
     }
 
     /**
