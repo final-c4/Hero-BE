@@ -356,8 +356,9 @@ public class AttendanceService {
     ){
         // 1. 날짜 보정 (null 이면 오늘 날짜 사용, start > end 이면 스왑)
         LocalDate today = LocalDate.now();
+        LocalDate defaultStart = today.withDayOfMonth(1);
 
-        LocalDate finalStart = (startDate != null) ? startDate : today;
+        LocalDate finalStart = (startDate != null) ? startDate : defaultStart;
         LocalDate finalEnd = (endDate != null) ? endDate : today;
 
         if (finalStart.isAfter(finalEnd)) {
@@ -366,20 +367,11 @@ public class AttendanceService {
             finalEnd = tmp;
         }
 
-        // 2. 페이지 계산 (우리 공통 유틸 사용)
-        PageInfo pageInfo = PageCalculator.calculate(
-                page,
-                size,
-                Integer.MAX_VALUE    // 실제 totalCount는 JPA Page에서 계산
-        );
+        // 2) Pageable 생성 (요청 page는 1-based로 들어온다고 가정)
+        int pageIndex = Math.max(page - 1, 0);
+        Pageable pageable = PageRequest.of(pageIndex, size);
 
-        // 3. Pageable 생성 (0-based 변환)
-        PageRequest pageable = PageRequest.of(
-                pageInfo.getPage() - 1,
-                pageInfo.getSize()
-        );
-
-        // 4. Repository 호출
+        // 3. Repository 호출
         Page<AttendanceDashboardDTO> pageResult =
                 attendanceDashboardRepository.findAttendanceDashboard(
                         departmentId,
@@ -388,7 +380,7 @@ public class AttendanceService {
                         pageable
                 );
 
-        // 5. 공통 PageResponse로 변환
+        // 4. 공통 PageResponse로 변환
         return PageResponse.of(
                 pageResult.getContent(),
                 pageResult.getNumber() + 1,      // 0-based → 1-based
