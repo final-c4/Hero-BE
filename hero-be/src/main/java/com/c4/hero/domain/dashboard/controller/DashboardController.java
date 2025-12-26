@@ -37,7 +37,7 @@ import java.time.LocalTime;
  * @author 혜원
  * @version 1.0
  */
-@Tag(name = "Dashboard", description = "대시보드 통계 API")
+@Tag(name = "홈 대시보드", description = "대시보드 통계 API")
 @Slf4j
 @RestController
 @RequestMapping("/api/timeclock")

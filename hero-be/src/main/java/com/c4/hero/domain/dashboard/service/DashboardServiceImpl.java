@@ -2,16 +2,8 @@ package com.c4.hero.domain.dashboard.service;
 
 import com.c4.hero.common.exception.BusinessException;
 import com.c4.hero.common.exception.ErrorCode;
-import com.c4.hero.domain.dashboard.dto.ApprovalStatsDTO;
-import com.c4.hero.domain.dashboard.dto.AttendanceStatsDTO;
-import com.c4.hero.domain.dashboard.dto.ClockInRequestDTO;
-import com.c4.hero.domain.dashboard.dto.ClockOutRequestDTO;
-import com.c4.hero.domain.dashboard.dto.ClockStatusDTO;
-import com.c4.hero.domain.dashboard.dto.MonthlySummaryDTO;
-import com.c4.hero.domain.dashboard.dto.VacationStatsDTO;
-import com.c4.hero.domain.dashboard.dto.WeeklyStatsDTO;
+import com.c4.hero.domain.dashboard.dto.*;
 import com.c4.hero.domain.dashboard.mapper.DashboardMapper;
-import com.c4.hero.domain.dashboard.util.MapperResultUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 
 /**
  * <pre>
@@ -38,7 +29,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DashboardServiceImpl implements DashboardService {
 
-    private final DashboardMapper timeClockMapper;
+    private final DashboardMapper dashboardMapper;
 
     /**
      * 출근 처리
@@ -53,7 +44,7 @@ public class DashboardServiceImpl implements DashboardService {
                 employeeId, dto.getWorkDate(), dto.getStartTime());
 
         // 1. 오늘 이미 출근 기록이 있는지 확인
-        ClockStatusDTO status = timeClockMapper.selectTodayStatus(employeeId, dto.getWorkDate());
+        ClockStatusDTO status = dashboardMapper.selectTodayStatus(employeeId, dto.getWorkDate());
         if (status != null && status.getIsClockedIn()) {
             log.warn("이미 출근 처리되었습니다. attendanceId: {}", status.getAttendanceId());
             throw new BusinessException(ErrorCode.ALREADY_CLOCKED_IN);
@@ -63,7 +54,7 @@ public class DashboardServiceImpl implements DashboardService {
         dto.setStartTime(dto.getStartTime().withNano(0));
 
         // 3. 출근 기록 INSERT
-        int result = timeClockMapper.insertClockIn(employeeId, departmentId, dto);
+        int result = dashboardMapper.insertClockIn(employeeId, departmentId, dto);
         if (result != 1) {
             log.error("출근 INSERT 실패. result: {}", result);
             throw new BusinessException(ErrorCode.CLOCK_IN_FAILED);
@@ -84,7 +75,7 @@ public class DashboardServiceImpl implements DashboardService {
                 employeeId, dto.getWorkDate(), dto.getEndTime());
 
         // 1. 오늘 출근 기록 확인
-        ClockStatusDTO status = timeClockMapper.selectTodayStatus(employeeId, dto.getWorkDate());
+        ClockStatusDTO status = dashboardMapper.selectTodayStatus(employeeId, dto.getWorkDate());
         if (status == null || !status.getIsClockedIn()) {
             log.warn("출근 기록이 없습니다.");
             throw new BusinessException(ErrorCode.NOT_CLOCKED_IN);
@@ -103,7 +94,7 @@ public class DashboardServiceImpl implements DashboardService {
         dto.setEndTime(dto.getEndTime().withNano(0));
 
         // 5. 퇴근 시각 UPDATE
-        int result = timeClockMapper.updateClockOut(employeeId, dto);
+        int result = dashboardMapper.updateClockOut(employeeId, dto);
         if (result != 1) {
             log.error("퇴근 UPDATE 실패. result: {}", result);
             throw new BusinessException(ErrorCode.CLOCK_OUT_FAILED);
@@ -123,7 +114,7 @@ public class DashboardServiceImpl implements DashboardService {
     public ClockStatusDTO getTodayStatus(Integer employeeId, LocalDate workDate) {
         log.debug("=== 출퇴근 상태 조회 === employeeId: {}, workDate: {}", employeeId, workDate);
 
-        ClockStatusDTO status = timeClockMapper.selectTodayStatus(employeeId, workDate);
+        ClockStatusDTO status = dashboardMapper.selectTodayStatus(employeeId, workDate);
 
         // 출근 기록이 없으면 기본값 반환
         if (status == null) {
@@ -157,20 +148,7 @@ public class DashboardServiceImpl implements DashboardService {
         log.info("조회 기간: {} ~ {}", startDate, endDate);
 
         // Mapper 호출
-        Map<String, Object> result = timeClockMapper.selectWeeklyStats(
-                employeeId,
-                startDate,
-                endDate
-        );
-
-        // DTO 변환
-        WeeklyStatsDTO stats = new WeeklyStatsDTO();
-        stats.setTotalWorkMinutes(MapperResultUtil.getIntValue(result, "total_work_minutes"));
-        stats.setTotalWorkHours(MapperResultUtil.getDoubleValue(result, "total_work_hours"));
-        stats.setLegalWeeklyHours(52);
-        stats.setAchievementRate(MapperResultUtil.getDoubleValue(result, "achievement_rate"));
-        stats.setIsWorkingToday(MapperResultUtil.getBooleanValue(result, "is_working_today"));
-        stats.setTodayWorkMinutes(MapperResultUtil.getIntValue(result, "today_work_minutes"));
+        WeeklyStatsDTO stats = dashboardMapper.selectWeeklyStats(employeeId, startDate, endDate);
 
         // 오늘 근무 중이면 실시간 시간 추가
         if (Boolean.TRUE.equals(stats.getIsWorkingToday())) {
@@ -203,14 +181,7 @@ public class DashboardServiceImpl implements DashboardService {
         String startDate = firstDay.format(DateTimeFormatter.ISO_LOCAL_DATE);
         String endDate = lastDay.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
-        Map<String, Object> result = timeClockMapper.selectMonthlySummary(
-                employeeId, startDate, endDate
-        );
-
-        MonthlySummaryDTO summary = new MonthlySummaryDTO();
-        summary.setWorkDays(MapperResultUtil.getIntValue(result, "work_days"));
-        summary.setRemainingAnnualLeave(MapperResultUtil.getDoubleValue(result, "remaining_annual_leave"));
-        summary.setUsedVacationDays(MapperResultUtil.getDoubleValue(result, "used_vacation_days"));
+        MonthlySummaryDTO summary = dashboardMapper.selectMonthlySummary(employeeId, startDate, endDate);
 
         log.info("=== 월간 요약 조회 완료 === 근무일수: {}일", summary.getWorkDays());
 
@@ -234,15 +205,7 @@ public class DashboardServiceImpl implements DashboardService {
         String startDate = firstDay.format(DateTimeFormatter.ISO_LOCAL_DATE);
         String endDate = lastDay.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
-        Map<String, Object> result = timeClockMapper.selectAttendanceStats(
-                employeeId, startDate, endDate
-        );
-
-        AttendanceStatsDTO stats = new AttendanceStatsDTO();
-        stats.setNormalDays(MapperResultUtil.getIntValue(result, "normal_days"));
-        stats.setLateDays(MapperResultUtil.getIntValue(result, "late_days"));
-        stats.setAbsentDays(MapperResultUtil.getIntValue(result, "absent_days"));
-        stats.setEarlyLeaveDays(MapperResultUtil.getIntValue(result, "early_leave_days"));
+        AttendanceStatsDTO stats = dashboardMapper.selectAttendanceStats(employeeId, startDate, endDate);
 
         log.info("=== 출근 통계 조회 완료 === 정상: {}일, 지각: {}일",
                 stats.getNormalDays(), stats.getLateDays());
@@ -267,15 +230,7 @@ public class DashboardServiceImpl implements DashboardService {
         String startDate = firstDay.format(DateTimeFormatter.ISO_LOCAL_DATE);
         String endDate = lastDay.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
-        Map<String, Object> result = timeClockMapper.selectVacationStats(
-                employeeId, startDate, endDate
-        );
-
-        VacationStatsDTO stats = new VacationStatsDTO();
-        stats.setAnnualLeaveDays(MapperResultUtil.getDoubleValue(result, "annual_leave_days"));
-        stats.setHalfDayDays(MapperResultUtil.getDoubleValue(result, "half_day_days"));
-        stats.setSickLeaveDays(MapperResultUtil.getDoubleValue(result, "sick_leave_days"));
-        stats.setOtherLeaveDays(MapperResultUtil.getDoubleValue(result, "other_leave_days"));
+        VacationStatsDTO stats = dashboardMapper.selectVacationStats(employeeId, startDate, endDate);
 
         log.info("=== 휴가 현황 조회 완료 === 연차: {}일", stats.getAnnualLeaveDays());
 
@@ -292,12 +247,7 @@ public class DashboardServiceImpl implements DashboardService {
     public ApprovalStatsDTO getApprovalStats(Integer employeeId) {
         log.info("=== 결재 현황 조회 시작 === employeeId: {}", employeeId);
 
-        Map<String, Object> result = timeClockMapper.selectApprovalStats(employeeId);
-
-        ApprovalStatsDTO stats = new ApprovalStatsDTO();
-        stats.setPendingCount(MapperResultUtil.getIntValue(result, "pending_count"));
-        stats.setApprovedCount(MapperResultUtil.getIntValue(result, "approved_count"));
-        stats.setRejectedCount(MapperResultUtil.getIntValue(result, "rejected_count"));
+        ApprovalStatsDTO stats = dashboardMapper.selectApprovalStats(employeeId);
 
         log.info("=== 결재 현황 조회 완료 === 대기: {}건, 완료: {}건",
                 stats.getPendingCount(), stats.getApprovedCount());

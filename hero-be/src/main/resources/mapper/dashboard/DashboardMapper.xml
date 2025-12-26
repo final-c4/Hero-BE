@@ -4,8 +4,8 @@
 
 <!--
   <pre>
-  Xml Name  : TimeClockMapper
-  Description: 출퇴근 타각(Time Clock) 관련 MyBatis 매퍼 XML
+  Xml Name  : DashboardMapper
+  Description: 대시보드 통계 관련 MyBatis 매퍼 XML
 
   History
   2025/12/26 (혜원) 최초 작성
@@ -16,7 +16,7 @@
 
 <mapper namespace="com.c4.hero.domain.dashboard.mapper.DashboardMapper">
 
-<!-- 1) 출퇴근 상태 ResultMap - ClockStatusDTO 매핑 정의-->
+    <!-- 1) 출퇴근 상태 ResultMap - ClockStatusDTO 매핑 정의-->
     <resultMap id="ClockStatusMap" type="com.c4.hero.domain.dashboard.dto.ClockStatusDTO">
         <result property="attendanceId" column="attendance_id"/>
         <result property="workDate"     column="work_date"/>
@@ -28,7 +28,7 @@
         <result property="workDuration" column="work_duration"/>
     </resultMap>
 
-    <!-- 2) 출근 기록 INSERT TimeClockMapper.insertClockIn(...) -->
+    <!-- 2) 출근 기록 INSERT -->
     <insert id="insertClockIn" parameterType="map">
         INSERT INTO tbl_attendance (
             employee_id,
@@ -52,7 +52,7 @@
                  )
     </insert>
 
-    <!-- 3) 퇴근 시각 UPDATE + 근무시간 자동 계산 TimeClockMapper.updateClockOut(...) -->
+    <!-- 3) 퇴근 시각 UPDATE + 근무시간 자동 계산 -->
     <update id="updateClockOut" parameterType="map">
         UPDATE tbl_attendance
         SET
@@ -69,7 +69,7 @@
           AND attendance_id = #{dto.attendanceId}
     </update>
 
-    <!-- 4) 오늘 출퇴근 상태 조회 TimeClockMapper.selectTodayStatus(...) -->
+    <!-- 4) 오늘 출퇴근 상태 조회 -->
     <select id="selectTodayStatus" resultMap="ClockStatusMap" parameterType="map">
         SELECT
             att.attendance_id,
@@ -86,22 +86,22 @@
             LIMIT 1
     </select>
 
-    <!-- 5) 이번 주 근무 통계 조회 (오늘 근무 중인 시간 포함) TimeClockMapper.selectWeeklyStats(...) -->
-    <select id="selectWeeklyStats" resultType="map" parameterType="map">
+    <!-- 5) 이번 주 근무 통계 조회 (오늘 근무 중인 시간 포함) -->
+    <select id="selectWeeklyStats" resultType="com.c4.hero.domain.dashboard.dto.WeeklyStatsDTO" parameterType="map">
         SELECT
-            COALESCE(SUM(att.work_duration), 0) AS total_work_minutes,
-            ROUND(COALESCE(SUM(att.work_duration), 0) / 60.0, 1) AS total_work_hours,
-            52 AS legal_weekly_hours,
-            ROUND((COALESCE(SUM(att.work_duration), 0) / 60.0) / 52 * 100, 1) AS achievement_rate,
+            COALESCE(SUM(att.work_duration), 0) AS totalWorkMinutes,
+            ROUND(COALESCE(SUM(att.work_duration), 0) / 60.0, 1) AS totalWorkHours,
+            52 AS legalWeeklyHours,
+            ROUND((COALESCE(SUM(att.work_duration), 0) / 60.0) / 52 * 100, 1) AS achievementRate,
             CASE
                 WHEN TODAY.start_time IS NOT NULL AND TODAY.end_time IS NULL THEN TRUE
                 ELSE FALSE
-                END AS is_working_today,
+                END AS isWorkingToday,
             CASE
                 WHEN TODAY.start_time IS NOT NULL AND TODAY.end_time IS NULL
                     THEN TIMESTAMPDIFF(MINUTE, TODAY.start_time, NOW())
                 ELSE 0
-                END AS today_work_minutes
+                END AS todayWorkMinutes
         FROM (
                  SELECT #{startDate} AS week_start, #{endDate} AS week_end
              ) week_range
@@ -117,16 +117,16 @@
         ) TODAY ON 1=1
     </select>
 
-    <!-- 6) 이번 달 요약 통계 조회 TimeClockMapper.selectMonthlySummary(...) -->
-    <select id="selectMonthlySummary" resultType="map" parameterType="map">
+    <!-- 6) 이번 달 요약 통계 조회 -->
+    <select id="selectMonthlySummary" resultType="com.c4.hero.domain.dashboard.dto.MonthlySummaryDTO" parameterType="map">
         SELECT
-            COALESCE(COUNT(DISTINCT att.work_date), 0) AS work_days,
-            COALESCE(lv.remaining_days, 0) AS remaining_annual_leave,
+            COALESCE(COUNT(DISTINCT att.work_date), 0) AS workDays,
+            COALESCE(lv.remaining_days, 0) AS remainingAnnualLeave,
             COALESCE(SUM(CASE
                              WHEN vlog.status = 'APPROVED'
                                  THEN TIMESTAMPDIFF(DAY, vlog.start_date, vlog.end_date) + 1
                              ELSE 0
-                END), 0) AS used_vacation_days
+                END), 0) AS usedVacationDays
         FROM (
                  SELECT #{startDate} AS month_start, #{endDate} AS month_end
              ) month_range
@@ -141,20 +141,20 @@
                                AND vlog.start_date BETWEEN month_range.month_start AND month_range.month_end
     </select>
 
-    <!-- 7) 출근 통계 조회 (이번 달) TimeClockMapper.selectAttendanceStats(...) -->
-    <select id="selectAttendanceStats" resultType="map" parameterType="map">
+    <!-- 7) 출근 통계 조회 (이번 달) -->
+    <select id="selectAttendanceStats" resultType="com.c4.hero.domain.dashboard.dto.AttendanceStatsDTO" parameterType="map">
         SELECT
-            COALESCE(SUM(CASE WHEN att.state = '정상' THEN 1 ELSE 0 END), 0) AS normal_days,
-            COALESCE(SUM(CASE WHEN att.state = '지각' THEN 1 ELSE 0 END), 0) AS late_days,
-            COALESCE(SUM(CASE WHEN att.state = '결근' THEN 1 ELSE 0 END), 0) AS absent_days,
-            COALESCE(SUM(CASE WHEN att.state = '조퇴' THEN 1 ELSE 0 END), 0) AS early_leave_days
+            SUM(CASE WHEN att.state = '정상' THEN 1 ELSE 0 END) AS normalDays,
+            SUM(CASE WHEN att.state = '지각' THEN 1 ELSE 0 END) AS lateDays,
+            SUM(CASE WHEN att.state = '결근' THEN 1 ELSE 0 END) AS absentDays,
+            SUM(CASE WHEN att.state = '조퇴' THEN 1 ELSE 0 END) AS earlyLeaveDays
         FROM tbl_attendance att
         WHERE att.employee_id = #{employeeId}
           AND att.work_date BETWEEN #{startDate} AND #{endDate}
     </select>
 
-    <!-- 8) 휴가 현황 조회 (이번 달) TimeClockMapper.selectVacationStats(...) -->
-    <select id="selectVacationStats" resultType="map" parameterType="map">
+    <!-- 8) 휴가 현황 조회 (이번 달) -->
+    <select id="selectVacationStats" resultType="com.c4.hero.domain.dashboard.dto.VacationStatsDTO" parameterType="map">
         SELECT
             SUM(
                     CASE
@@ -162,21 +162,21 @@
                             THEN TIMESTAMPDIFF(DAY, vlog.start_date, vlog.end_date) + 1
                         ELSE 0
                         END
-            ) AS annual_leave_days,
+            ) AS annualLeaveDays,
             SUM(
                     CASE
                         WHEN vt.vacation_type_name LIKE '%반차%'
                             THEN 0.5
                         ELSE 0
                         END
-            ) AS half_day_days,
+            ) AS halfDayDays,
             SUM(
                     CASE
                         WHEN vt.vacation_type_name LIKE '%병가%'
                             THEN TIMESTAMPDIFF(DAY, vlog.start_date, vlog.end_date) + 1
                         ELSE 0
                         END
-            ) AS sick_leave_days,
+            ) AS sickLeaveDays,
             SUM(
                     CASE
                         WHEN vt.vacation_type_name NOT LIKE '%연차%'
@@ -185,7 +185,7 @@
                             THEN TIMESTAMPDIFF(DAY, vlog.start_date, vlog.end_date) + 1
                         ELSE 0
                         END
-            ) AS other_leave_days
+            ) AS otherLeaveDays
         FROM tbl_vacation_log vlog
                  LEFT JOIN tbl_vacation_type vt ON vlog.vacation_type_id = vt.vacation_type_id
         WHERE vlog.employee_id = #{employeeId}
@@ -193,12 +193,12 @@
           AND vlog.start_date BETWEEN #{startDate} AND #{endDate}
     </select>
 
-    <!-- 9) 결재 현황 조회 TimeClockMapper.selectApprovalStats(...) -->
-    <select id="selectApprovalStats" resultType="map" parameterType="map">
+    <!-- 9) 결재 현황 조회 -->
+    <select id="selectApprovalStats" resultType="com.c4.hero.domain.dashboard.dto.ApprovalStatsDTO" parameterType="map">
         SELECT
-            COALESCE(SUM(CASE WHEN doc.doc_status = 'DRAFT' THEN 1 ELSE 0 END), 0) AS pending_count,
-            COALESCE(SUM(CASE WHEN doc.doc_status = 'APPROVED' THEN 1 ELSE 0 END), 0) AS approved_count,
-            COALESCE(SUM(CASE WHEN doc.doc_status = 'REJECTED' THEN 1 ELSE 0 END), 0) AS rejected_count
+            SUM(CASE WHEN doc.doc_status IN ('DRAFT', 'PENDING') THEN 1 ELSE 0 END) AS pendingCount,
+            SUM(CASE WHEN doc.doc_status = 'APPROVED' THEN 1 ELSE 0 END) AS approvedCount,
+            SUM(CASE WHEN doc.doc_status = 'REJECTED' THEN 1 ELSE 0 END) AS rejectedCount
         FROM tbl_approval_document doc
         WHERE doc.drafter_id = #{employeeId}
     </select>

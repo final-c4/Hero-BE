@@ -1,13 +1,10 @@
 package com.c4.hero.domain.dashboard.mapper;
 
-import com.c4.hero.domain.dashboard.dto.ClockInRequestDTO;
-import com.c4.hero.domain.dashboard.dto.ClockOutRequestDTO;
-import com.c4.hero.domain.dashboard.dto.ClockStatusDTO;
+import com.c4.hero.domain.dashboard.dto.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
-import java.util.Map;
 
 /**
  * <pre>
@@ -64,9 +61,9 @@ public interface DashboardMapper {
      * @param employeeId 사원 ID
      * @param startDate 시작 날짜 (이번 주 월요일)
      * @param endDate 종료 날짜 (이번 주 일요일)
-     * @return 주간 근무 통계 (total_work_minutes, total_work_hours, achievement_rate 등)
+     * @return 주간 근무 통계
      */
-    Map<String, Object> selectWeeklyStats(
+    WeeklyStatsDTO selectWeeklyStats(
             @Param("employeeId") Integer employeeId,
             @Param("startDate") String startDate,
             @Param("endDate") String endDate
@@ -77,9 +74,9 @@ public interface DashboardMapper {
      * @param employeeId 사원 ID
      * @param startDate 시작 날짜 (이번 달 1일)
      * @param endDate 종료 날짜 (이번 달 말일)
-     * @return 월간 요약 통계 (work_days, remaining_annual_leave, used_vacation_days)
+     * @return 월간 요약 통계
      */
-    Map<String, Object> selectMonthlySummary(
+    MonthlySummaryDTO selectMonthlySummary(
             @Param("employeeId") Integer employeeId,
             @Param("startDate") String startDate,
             @Param("endDate") String endDate
@@ -90,9 +87,9 @@ public interface DashboardMapper {
      * @param employeeId 사원 ID
      * @param startDate 시작 날짜 (이번 달 1일)
      * @param endDate 종료 날짜 (이번 달 말일)
-     * @return 출근 통계 (normal_days, late_days, absent_days, early_leave_days)
+     * @return 출근 통계
      */
-    Map<String, Object> selectAttendanceStats(
+    AttendanceStatsDTO selectAttendanceStats(
             @Param("employeeId") Integer employeeId,
             @Param("startDate") String startDate,
             @Param("endDate") String endDate
@@ -103,9 +100,9 @@ public interface DashboardMapper {
      * @param employeeId 사원 ID
      * @param startDate 시작 날짜 (이번 달 1일)
      * @param endDate 종료 날짜 (이번 달 말일)
-     * @return 휴가 현황 통계 (annual_leave_days, half_day_days, sick_leave_days, other_leave_days)
+     * @return 휴가 현황 통계
      */
-    Map<String, Object> selectVacationStats(
+    VacationStatsDTO selectVacationStats(
             @Param("employeeId") Integer employeeId,
             @Param("startDate") String startDate,
             @Param("endDate") String endDate
@@ -114,9 +111,9 @@ public interface DashboardMapper {
     /**
      * 결재 현황 조회
      * @param employeeId 사원 ID
-     * @return 결재 현황 통계 (pending_count, approved_count, rejected_count)
+     * @return 결재 현황 통계
      */
-    Map<String, Object> selectApprovalStats(
+    ApprovalStatsDTO selectApprovalStats(
             @Param("employeeId") Integer employeeId
     );
 }
