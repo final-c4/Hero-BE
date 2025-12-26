@@ -89,7 +89,7 @@ public interface AttendanceDashboardRepository extends JpaRepository<Attendance,
                     ) end desc,
                     e.employeeId asc
                 """,
-                    countQuery = """
+            countQuery = """
                 select count(e.employeeId)
                 from Employee e
                     join e.employeeDepartment d
