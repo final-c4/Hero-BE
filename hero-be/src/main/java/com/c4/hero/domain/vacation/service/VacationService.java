@@ -145,7 +145,6 @@ public class VacationService {
      * @param month 월(1~12)
      * @return 동기화 결과
      */
-    @Transactional
     public SyncResult syncVacationLogsToGoogleCalendar(int year, int month) {
         if (month < 1 || month > 12) {
             throw new IllegalArgumentException("month는 1~12 범위여야 합니다. month=" + month);
