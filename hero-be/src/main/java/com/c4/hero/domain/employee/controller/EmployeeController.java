@@ -65,7 +65,6 @@ import java.util.List;
 public class EmployeeController {
 
     private final EmployeeCommandService employeeCommandService;
-    private final EmployeePasswordService employeePasswordService;
     private final EmployeeQueryService employeeQueryService;
     private final EmployeeProfileQueryService employeeProfileQueryService;
     private final EmployeeSealService employeeSealService;

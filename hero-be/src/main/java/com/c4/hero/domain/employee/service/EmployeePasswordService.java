@@ -46,7 +46,6 @@ public class EmployeePasswordService {
             log.error("계정 정보를 찾을 수 없음 - employeeId: {}", employeeId);
             throw new IllegalArgumentException("계정 정보를 찾을 수 없습니다.");
         }
-
         // 현재 비밀번호 일치 여부 확인
         if (!passwordEncoder.matches(requestDTO.getCurrentPassword(), currentEncodedPassword)) {
             log.error("현재 비밀번호 불일치 - employeeId: {}", employeeId);
