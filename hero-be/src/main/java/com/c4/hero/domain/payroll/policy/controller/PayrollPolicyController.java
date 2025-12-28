@@ -1,6 +1,9 @@
 package com.c4.hero.domain.payroll.policy.controller;
 
+import com.c4.hero.common.response.CustomResponse;
 import com.c4.hero.domain.payroll.common.type.ItemType;
+import com.c4.hero.domain.payroll.policy.dto.request.PolicyCopyRequest;
+import com.c4.hero.domain.payroll.policy.dto.request.PolicyUpdateRequest;
 import com.c4.hero.domain.payroll.policy.dto.response.ItemPolicyResponse;
 import com.c4.hero.domain.payroll.policy.dto.request.ItemPolicyTargetRequest;
 import com.c4.hero.domain.payroll.policy.dto.request.ItemPolicyUpsertRequest;
@@ -11,6 +14,7 @@ import com.c4.hero.domain.payroll.policy.dto.request.PolicyCreateRequest;
 import com.c4.hero.domain.payroll.policy.dto.response.PolicyDetailResponse;
 import com.c4.hero.domain.payroll.policy.dto.response.PolicyResponse;
 import com.c4.hero.domain.payroll.policy.service.ItemPolicyService;
+import com.c4.hero.domain.payroll.policy.service.PayrollPolicyCopyTxService;
 import com.c4.hero.domain.payroll.policy.service.PayrollPolicyService;
 import com.c4.hero.domain.payroll.policy.service.PayrollPolicyTxService;
 import com.c4.hero.domain.payroll.policy.service.PolicyConfigService;
@@ -22,7 +26,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -61,7 +65,7 @@ public class PayrollPolicyController {
     private final PolicyConfigService configService;
     private final ItemPolicyService itemPolicyService;
     private final PolicyDetailService policyDetailService;
-
+    private final PayrollPolicyCopyTxService policyCopyTxService;
     /**
      *  정책 생성
      *
@@ -77,8 +81,8 @@ public class PayrollPolicyController {
                     content = @Content(schema = @Schema(implementation = PolicyResponse.class)))
     })
     @PostMapping
-    public ResponseEntity<PolicyResponse> create(@RequestBody PolicyCreateRequest req) {
-        return ResponseEntity.ok(policyService.createPolicy(req));
+    public CustomResponse<PolicyResponse> create(@RequestBody PolicyCreateRequest req) {
+        return CustomResponse.success(policyService.createPolicy(req));
     }
 
     /**
@@ -94,8 +98,8 @@ public class PayrollPolicyController {
             @ApiResponse(responseCode = "200", description = "정책 목록 조회 성공")
     })
     @GetMapping
-    public ResponseEntity<List<PolicyResponse>> list() {
-        return ResponseEntity.ok(policyService.getPolicies());
+    public CustomResponse<List<PolicyResponse>> list() {
+        return CustomResponse.success(policyService.getPolicies());
     }
 
     /**
@@ -111,8 +115,8 @@ public class PayrollPolicyController {
             @ApiResponse(responseCode = "200", description = "활성 정책 조회 성공")
     })
     @GetMapping("/active")
-    public ResponseEntity<PolicyResponse> active() {
-        return ResponseEntity.ok(policyService.getActivePolicy());
+    public CustomResponse<PolicyResponse> active() {
+        return CustomResponse.success(policyService.getActivePolicy());
     }
 
     /**
@@ -131,11 +135,11 @@ public class PayrollPolicyController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     @PatchMapping("/{policyId}/activate")
-    public ResponseEntity<PolicyResponse> activate(
+    public CustomResponse<PolicyResponse> activate(
             @PathVariable Integer policyId,
             @RequestBody PolicyActivateRequest req
     ) {
-        return ResponseEntity.ok(policyTxService.activate(policyId, req));
+        return CustomResponse.success(policyTxService.activate(policyId, req));
     }
 
     /**
@@ -149,9 +153,10 @@ public class PayrollPolicyController {
             description = "특정 급여 정책에 포함된 설정(Config) 목록을 조회합니다."
     )
     @GetMapping("/{policyId}/configs")
-    public ResponseEntity<List<PolicyConfigResponse>> getConfigs(@PathVariable Integer policyId) {
-        return ResponseEntity.ok(configService.getConfigs(policyId));
+    public CustomResponse<List<PolicyConfigResponse>> getConfigs(@PathVariable Integer policyId) {
+        return CustomResponse.success(configService.getConfigs(policyId));
     }
+
 
     /**
      * 정책별 설정(Config) 업서트
@@ -165,12 +170,12 @@ public class PayrollPolicyController {
             description = "급여 정책의 설정(Config)을 일괄 등록 또는 수정합니다."
     )
     @PutMapping("/{policyId}/configs")
-    public ResponseEntity<Void> upsertConfigs(
+    public CustomResponse<Void> upsertConfigs(
             @PathVariable Integer policyId,
             @RequestBody List<PolicyConfigUpsertRequest> reqs
     ) {
         configService.upsertConfigs(policyId, reqs);
-        return ResponseEntity.ok().build();
+        return CustomResponse.success(null);
     }
 
     /**
@@ -185,11 +190,11 @@ public class PayrollPolicyController {
             description = "급여 정책에 포함된 항목 정책(Item Policy)을 타입별로 조회합니다."
     )
     @GetMapping("/{policyId}/items")
-    public ResponseEntity<List<ItemPolicyResponse>> items(
+    public CustomResponse<List<ItemPolicyResponse>> items(
             @PathVariable Integer policyId,
             @RequestParam ItemType type
     ) {
-        return ResponseEntity.ok(itemPolicyService.getItems(policyId, type));
+        return CustomResponse.success(itemPolicyService.getItems(policyId, type));
     }
 
     /**
@@ -204,11 +209,11 @@ public class PayrollPolicyController {
             description = "급여 정책에 새로운 항목 정책(Item Policy)을 생성합니다."
     )
     @PostMapping("/{policyId}/items")
-    public ResponseEntity<ItemPolicyResponse> createItem(
+    public CustomResponse<ItemPolicyResponse> createItem(
             @PathVariable Integer policyId,
             @RequestBody ItemPolicyUpsertRequest req
     ) {
-        return ResponseEntity.ok(itemPolicyService.createItem(policyId, req));
+        return CustomResponse.success(itemPolicyService.createItem(policyId, req));
     }
 
     /**
@@ -223,12 +228,12 @@ public class PayrollPolicyController {
             description = "기존 항목 정책(Item Policy)을 수정합니다."
     )
     @PutMapping("/items/{itemPolicyId}")
-    public ResponseEntity<Void> updateItem(
+    public CustomResponse<Void> updateItem(
             @PathVariable Integer itemPolicyId,
             @RequestBody ItemPolicyUpsertRequest req
     ) {
         itemPolicyService.updateItem(itemPolicyId, req);
-        return ResponseEntity.ok().build();
+        return CustomResponse.success(null);
     }
 
     /**
@@ -243,12 +248,12 @@ public class PayrollPolicyController {
             description = "항목 정책에 연결된 대상(Target) 목록을 전체 교체합니다."
     )
     @PutMapping("/items/{itemPolicyId}/targets")
-    public ResponseEntity<Void> replaceTargets(
+    public CustomResponse<Void> replaceTargets(
             @PathVariable Integer itemPolicyId,
             @RequestBody List<ItemPolicyTargetRequest> targets
     ) {
         itemPolicyService.replaceTargets(itemPolicyId, targets);
-        return ResponseEntity.ok().build();
+        return CustomResponse.success(null);
     }
 
     /**
@@ -262,7 +267,155 @@ public class PayrollPolicyController {
             description = "급여 정책의 설정(Config) 및 항목 정책(Item Policy)을 포함한 상세 정보를 조회합니다."
     )
     @GetMapping("/{policyId}")
-    public ResponseEntity<PolicyDetailResponse> detail(@PathVariable Integer policyId) {
-        return ResponseEntity.ok(policyDetailService.getDetail(policyId));
+    public CustomResponse<PolicyDetailResponse> detail(@PathVariable Integer policyId) {
+        return CustomResponse.success(policyDetailService.getDetail(policyId));
+    }
+
+
+    /**
+     * 급여 정책 수정
+     *
+     * @param policyId 수정할 정책 ID
+     * @param req 정책 수정 요청 DTO
+     * @return 수정된 정책 정보
+     */
+    @Operation(
+            summary = "급여 정책 수정",
+            description = "급여 정책의 기본 정보를 수정합니다. (Draft 상태 정책만 수정 가능)"
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "정책 수정 성공",
+                    content = @Content(schema = @Schema(implementation = PolicyResponse.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "정책을 찾을 수 없음")
+    })
+    @PutMapping("/{policyId}")
+    public CustomResponse<PolicyResponse> update(
+            @PathVariable Integer policyId,
+            @RequestBody PolicyUpdateRequest req
+    ) {
+        return CustomResponse.success(policyService.updatePolicy(policyId, req));
+    }
+
+
+    /**
+     * 급여 정책 삭제
+     *
+     * @param policyId 삭제할 정책 ID
+     * @return 200 OK
+     */
+    @Operation(
+            summary = "급여 정책 삭제",
+            description = "Draft 상태의 급여 정책을 삭제합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "정책 삭제 성공"),
+            @ApiResponse(responseCode = "400", description = "삭제할 수 없는 상태의 정책"),
+            @ApiResponse(responseCode = "404", description = "정책을 찾을 수 없음")
+    })
+    @DeleteMapping("/{policyId}")
+    public CustomResponse<Void> delete(@PathVariable Integer policyId) {
+        policyService.deleteDraftPolicy(policyId);
+        return CustomResponse.success(null);
+    }
+
+
+    /**
+     * 급여 정책 복사
+     *
+     * @param policyId 복사 대상 정책 ID
+     * @param req 복사 옵션 요청 DTO (선택)
+     * @return 복사된 신규 정책 정보
+     */
+    @Operation(
+            summary = "급여 정책 복사",
+            description = "기존 급여 정책을 복사하여 새로운 Draft 정책을 생성합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "정책 복사 성공",
+                    content = @Content(schema = @Schema(implementation = PolicyResponse.class))),
+            @ApiResponse(responseCode = "404", description = "정책을 찾을 수 없음")
+    })
+    @PostMapping("/{policyId}/copy")
+    public CustomResponse<PolicyResponse> copy(
+            @PathVariable Integer policyId,
+            @RequestBody(required = false) PolicyCopyRequest req
+    ) {
+        return CustomResponse.success(policyCopyTxService.copy(policyId, req));
+    }
+
+
+    /**
+     * 급여 정책 만료 처리
+     *
+     * @param policyId 만료할 정책 ID
+     * @return 만료된 정책 정보
+     */
+    @Operation(
+            summary = "급여 정책 만료 처리",
+            description = "활성 또는 비활성 급여 정책을 만료(EXPIRED) 상태로 변경합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "정책 만료 성공",
+                    content = @Content(schema = @Schema(implementation = PolicyResponse.class))),
+            @ApiResponse(responseCode = "400", description = "만료할 수 없는 상태"),
+            @ApiResponse(responseCode = "404", description = "정책을 찾을 수 없음")
+    })
+    @PatchMapping("/{policyId}/expire")
+    public CustomResponse<PolicyResponse> expire(@PathVariable Integer policyId) {
+        return CustomResponse.success(policyService.expirePolicy(policyId));
+    }
+
+
+    /**
+     * 항목 정책 일괄 업서트
+     *
+     * @param policyId 급여 정책 ID
+     * @param type 항목 타입 (ALLOWANCE / DEDUCTION)
+     * @param reqs 항목 정책 업서트 요청 목록
+     * @return 200 OK
+     */
+    @Operation(
+            summary = "항목 정책 일괄 업서트",
+            description = "급여 정책에 속한 항목 정책을 타입별로 일괄 등록 또는 수정합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "항목 정책 업서트 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "정책을 찾을 수 없음")
+    })
+    @PutMapping("/{policyId}/items")
+    public CustomResponse<Void> upsertItemPolicies(
+            @PathVariable Integer policyId,
+            @RequestParam ItemType type,
+            @RequestBody List<ItemPolicyUpsertRequest> reqs
+    ) {
+        itemPolicyService.upsertItems(policyId, type, reqs);
+        return CustomResponse.success(null);
+    }
+
+
+    /**
+     * 항목 정책 삭제
+     *
+     * @param policyId 급여 정책 ID
+     * @param itemPolicyId 삭제할 항목 정책 ID
+     * @return 200 OK
+     */
+    @Operation(
+            summary = "항목 정책 삭제",
+            description = "급여 정책에 속한 특정 항목 정책(Item Policy)을 삭제합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "항목 정책 삭제 성공"),
+            @ApiResponse(responseCode = "404", description = "항목 정책을 찾을 수 없음")
+    })
+    @DeleteMapping("/{policyId}/items/{itemPolicyId}")
+    public CustomResponse<Void> deleteItemPolicy(
+            @PathVariable Integer policyId,
+            @PathVariable Integer itemPolicyId
+    ) {
+        itemPolicyService.deleteItem(policyId, itemPolicyId);
+        return CustomResponse.success(null);
     }
 }

@@ -15,7 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * <pre>
@@ -130,7 +135,6 @@ public class ItemPolicyService {
                     throw new IllegalArgumentException("targetValue는 필수입니다. (ALL 제외)");
                 }
             }
-
             targetRepository.save(PayrollItemPolicyTarget.builder()
                     .itemPolicyId(itemPolicyId)
                     .payrollTargetType(t.payrollTargetType())
@@ -216,5 +220,87 @@ public class ItemPolicyService {
     /** roundingMode 기본값 보정 */
     private RoundingModeType defaultRoundingMode(RoundingModeType m) {
         return (m == null) ? RoundingModeType.HALF_UP : m;
+    }
+
+    @Transactional
+    public void upsertItems(Integer policyId, ItemType type, List<ItemPolicyUpsertRequest> reqs) {
+
+        List<PayrollItemPolicy> existing =
+                itemPolicyRepository.findAllByPolicyIdAndItemType(policyId, type);
+
+        Map<Integer, PayrollItemPolicy> existingById = existing.stream()
+                .collect(Collectors.toMap(PayrollItemPolicy::getItemPolicyId, it -> it));
+
+        Set<Integer> survivedIds = new HashSet<>();
+
+        for (ItemPolicyUpsertRequest req : reqs) {
+
+            PayrollItemPolicy item;
+
+            if (req.itemPolicyId() != null && existingById.containsKey(req.itemPolicyId())) {
+                item = existingById.get(req.itemPolicyId());
+                item.applyAll(
+                        req.calcMethod(),
+                        req.fixedAmount(),
+                        req.rate(),
+                        req.baseAmountType(),
+                        req.roundingUnit(),
+                        req.roundingMode(),
+                        req.salaryMonthFrom(),
+                        req.salaryMonthTo(),
+                        req.priority(),
+                        req.activeYn()
+                );
+            } else {
+                item = PayrollItemPolicy.builder()
+                        .policyId(policyId)
+                        .itemType(type)
+                        .itemCode(req.itemCode())
+                        .calcMethod(req.calcMethod())
+                        .fixedAmount(req.fixedAmount())
+                        .rate(req.rate())
+                        .baseAmountType(req.baseAmountType())
+                        .roundingUnit(req.roundingUnit())
+                        .roundingMode(req.roundingMode())
+                        .salaryMonthFrom(req.salaryMonthFrom())
+                        .salaryMonthTo(req.salaryMonthTo())
+                        .priority(req.priority())
+                        .activeYn(req.activeYn())
+                        .build();
+
+                itemPolicyRepository.save(item);
+            }
+            survivedIds.add(item.getItemPolicyId());
+            targetRepository.deleteAllByItemPolicyId(item.getItemPolicyId());
+            if (req.targets() != null) {
+                for (ItemPolicyUpsertRequest.ItemPolicyTargetRequest t : req.targets()) {
+                    targetRepository.save(
+                            PayrollItemPolicyTarget.builder()
+                                    .itemPolicyId(item.getItemPolicyId())
+                                    .payrollTargetType(t.payrollTargetType())
+                                    .targetValue(t.targetValue())
+                                    .build()
+                    );
+                }
+            }
+        }
+        for (PayrollItemPolicy old : existing) {
+            if (!survivedIds.contains(old.getItemPolicyId())) {
+                targetRepository.deleteAllByItemPolicyId(old.getItemPolicyId());
+                itemPolicyRepository.delete(old);
+            }
+        }
+    }
+
+    @Transactional
+    public void deleteItem(Integer policyId, Integer itemPolicyId) {
+        PayrollItemPolicy item = itemPolicyRepository.findById(itemPolicyId)
+                .orElseThrow(() -> new IllegalArgumentException("itemPolicyId가 존재하지 않습니다."));
+
+        if (!Objects.equals(item.getPolicyId(), policyId)) {
+            throw new IllegalArgumentException("해당 정책의 항목이 아닙니다.");
+        }
+        targetRepository.deleteAllByItemPolicyId(itemPolicyId);
+        itemPolicyRepository.delete(item);
     }
 }

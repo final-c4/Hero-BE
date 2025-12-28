@@ -37,4 +37,16 @@ public interface PolicyConfigRepository extends JpaRepository<PolicyConfig, Inte
      * @return 해당 정책의 설정 (없을 수 있음)
      */
     Optional<PolicyConfig> findByPolicyIdAndConfigKey(Integer policyId, String configKey);
+
+    /**
+     * 정책 ID 기준 공통 설정 전체 삭제
+     *
+     * 용도
+     *  - 급여 정책 삭제 시 하위 설정 데이터 정리
+     *  - 정책 복사 시 기존 설정 초기화
+     *
+     * @param policyId 급여 정책 ID
+     */
+    void deleteAllByPolicyId(Integer policyId);
+
 }

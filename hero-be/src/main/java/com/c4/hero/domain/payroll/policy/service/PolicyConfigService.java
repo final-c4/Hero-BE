@@ -1,5 +1,6 @@
 package com.c4.hero.domain.payroll.policy.service;
 
+import com.c4.hero.domain.payroll.common.type.PayrollConfigKey;
 import com.c4.hero.domain.payroll.policy.dto.response.PolicyConfigResponse;
 import com.c4.hero.domain.payroll.policy.dto.request.PolicyConfigUpsertRequest;
 import com.c4.hero.domain.payroll.policy.entity.PolicyConfig;
@@ -57,26 +58,87 @@ public class PolicyConfigService {
      */
     @Transactional
     public void upsertConfigs(Integer policyId, List<PolicyConfigUpsertRequest> reqs) {
+        if (reqs == null) return;
+
         for (PolicyConfigUpsertRequest req : reqs) {
+
             if (req.configKey() == null || req.configKey().isBlank())
                 throw new IllegalArgumentException("configKey는 필수입니다.");
+            if (!PayrollConfigKey.ALLOWED.contains(req.configKey()))
+                throw new IllegalArgumentException("지원하지 않는 configKey입니다. key=" + req.configKey());
+
             if (req.valueType() == null || req.valueType().isBlank())
                 throw new IllegalArgumentException("valueType은 필수입니다.");
             if (req.configValue() == null)
                 throw new IllegalArgumentException("configValue는 필수입니다.");
+
+            String value = req.configValue().trim();
+            if (value.isEmpty()) {
+                throw new IllegalArgumentException("configValue는 빈 값일 수 없습니다. key=" + req.configKey());
+            }
+
+            validateConfigValue(req.configKey(), value);
 
             PolicyConfig config = configRepository.findByPolicyIdAndConfigKey(policyId, req.configKey())
                     .orElseGet(() -> PolicyConfig.builder()
                             .policyId(policyId)
                             .configKey(req.configKey())
                             .valueType(req.valueType())
-                            .configValue(req.configValue())
+                            .configValue(value)
                             .description(req.description())
                             .activeYn(req.activeYn() == null ? "Y" : req.activeYn())
                             .build());
 
-            config.apply(req.valueType(), req.configValue(), req.description(), req.activeYn());
+            config.apply(req.valueType(), value, req.description(), req.activeYn());
             configRepository.save(config);
+        }
+    }
+
+    /**
+     * configKey별 최소 검증
+     * - 추후 키 늘어나면 여기 switch에 케이스 추가
+     */
+    private void validateConfigValue(String key, String value) {
+        switch (key) {
+            case "PAYDAY_DAY", "CLOSE_DAY", "PAYSLIP_SEND_DAY"-> {
+                int day;
+                try {
+                    day = Integer.parseInt(value);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException(key + "는 숫자여야 합니다. value=" + value);
+                }
+                if (day < 1 || day > 31) {
+                    throw new IllegalArgumentException(key + "는 1~31 범위여야 합니다. value=" + value);
+                }
+            }
+            case "ROUNDING_MODE" -> {
+                if (!(value.equals("HALF_UP") || value.equals("FLOOR") || value.equals("CEIL"))) {
+                    throw new IllegalArgumentException("ROUNDING_MODE는 HALF_UP/FLOOR/CEIL 중 하나여야 합니다. value=" + value);
+                }
+            }
+            case "ROUNDING_UNIT" -> {
+                int unit;
+                try {
+                    unit = Integer.parseInt(value);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("ROUNDING_UNIT은 숫자여야 합니다. value=" + value);
+                }
+                if (unit <= 0) {
+                    throw new IllegalArgumentException("ROUNDING_UNIT은 0보다 커야 합니다. value=" + value);
+                }
+            }
+            case "HOLIDAY_RULE" -> {
+                if (!(value.equals("PREV_BUSINESS_DAY")
+                        || value.equals("NEXT_BUSINESS_DAY")
+                        || value.equals("NONE"))) {
+
+                    throw new IllegalArgumentException(
+                            "HOLIDAY_RULE은 PREV_BUSINESS_DAY/NEXT_BUSINESS_DAY/NONE 중 하나여야 합니다. value=" + value
+                    );
+                }
+            }
+            default -> {
+            }
         }
     }
 }

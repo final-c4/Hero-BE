@@ -38,4 +38,48 @@ public interface PayrollItemPolicyRepository extends JpaRepository<PayrollItemPo
      * @return 활성 상태 기준 항목 정책 목록
      */
     List<PayrollItemPolicy> findAllByPolicyIdAndItemTypeAndActiveYn(Integer policyId, ItemType itemType, String activeYn);
+
+
+    /**
+     * 정책 ID 기준으로 모든 항목 정책 조회
+     *
+     * 용도
+     *  - 정책 복사, 정책 삭제 시 전체 항목 정책 일괄 처리
+     *
+     * @param policyId 급여 정책 ID
+     * @return 항목 정책 목록
+     */
+    List<PayrollItemPolicy> findAllByPolicyId(Integer policyId);
+
+    /**
+     * 정책 ID 기준으로 모든 항목 정책 삭제
+     *
+     * @param policyId 급여 정책 ID
+     */
+    void deleteAllByPolicyId(Integer policyId);
+
+    /**
+     * 정책 ID 및 항목 타입 기준으로 항목 정책 삭제
+     *
+     * 용도
+     *  - 특정 타입(수당/공제) 항목 정책 전체 재구성 시 사용
+     *
+     * @param policyId 급여 정책 ID
+     * @param itemType 항목 유형
+     */
+    void deleteAllByPolicyIdAndItemType(Integer policyId, ItemType itemType);
+
+    /**
+     * 정책 ID 및 항목 타입 기준으로,
+     * 지정된 항목 코드를 제외한 나머지 항목 정책 삭제
+     *
+     * 용도
+     *  - 항목 정책 업서트 시
+     *    요청에 포함되지 않은 기존 항목을 정리하기 위해 사용
+     *
+     * @param policyId 급여 정책 ID
+     * @param itemType 항목 유형
+     * @param itemCodes 유지할 항목 코드 목록
+     */
+    void deleteAllByPolicyIdAndItemTypeAndItemCodeNotIn(Integer policyId, ItemType itemType, List<String> itemCodes);
 }

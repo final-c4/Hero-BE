@@ -4,11 +4,14 @@ import com.c4.hero.domain.payroll.common.type.PolicyStatus;
 import com.c4.hero.domain.payroll.policy.dto.request.PolicyActivateRequest;
 import com.c4.hero.domain.payroll.policy.dto.response.PolicyResponse;
 import com.c4.hero.domain.payroll.policy.entity.PayrollPolicy;
+import com.c4.hero.domain.payroll.policy.entity.PolicyConfig;
 import com.c4.hero.domain.payroll.policy.repository.PayrollPolicyRepository;
+import com.c4.hero.domain.payroll.policy.repository.PolicyConfigRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.regex.Pattern;
 /**
  * <pre>
@@ -27,6 +30,7 @@ import java.util.regex.Pattern;
 public class PayrollPolicyTxService {
 
     private final PayrollPolicyRepository policyRepository;
+    private final PolicyConfigRepository configRepository;
 
     /** 급여월 포맷(YYYY-MM) 검증용 정규식 */
     private static final Pattern YM = Pattern.compile("^\\d{4}-(0[1-9]|1[0-2])$");
@@ -43,6 +47,19 @@ public class PayrollPolicyTxService {
     @Transactional
     public PolicyResponse activate(Integer policyId, PolicyActivateRequest req) {
         validatePeriod(req.salaryMonthFrom(), req.salaryMonthTo());
+
+        List<PolicyConfig> configs = configRepository.findAllByPolicyId(policyId);
+
+        String payday = findConfigValue(configs, "PAYDAY_DAY");
+        String closeDay = findConfigValue(configs, "CLOSE_DAY");
+
+        if (payday == null || payday.isBlank())
+            throw new IllegalStateException("정책 활성화 전 PAYDAY_DAY(급여일) 설정이 필요합니다.");
+        if (closeDay == null || closeDay.isBlank())
+            throw new IllegalStateException("정책 활성화 전 CLOSE_DAY(마감일) 설정이 필요합니다.");
+
+        validateDay("PAYDAY_DAY", payday);
+        validateDay("CLOSE_DAY", closeDay);
 
         PayrollPolicy target = policyRepository.findById(policyId)
                 .orElseThrow(() -> new IllegalArgumentException("정책이 존재하지 않습니다. policyId=" + policyId));
@@ -65,6 +82,40 @@ public class PayrollPolicyTxService {
                 saved.getActiveYn()
         );
     }
+
+    /**
+     * 활성 상태의 공통 설정 값 조회
+     *
+     * @param configs 정책 공통 설정 목록
+     * @param key 조회할 설정 키
+     * @return 설정 값 (없으면 null)
+     */
+    private String findConfigValue(List<PolicyConfig> configs, String key) {
+        return configs.stream()
+                .filter(c -> key.equals(c.getConfigKey()) && "Y".equalsIgnoreCase(c.getActiveYn()))
+                .findFirst()
+                .map(PolicyConfig::getConfigValue)
+                .orElse(null);
+    }
+
+    /**
+     * 일(day) 값 검증 (1~31)
+     *
+     * @param key 설정 키명
+     * @param value 설정 값
+     */
+    private void validateDay(String key, String value) {
+        int day;
+        try {
+            day = Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException(key + "는 숫자여야 합니다.");
+        }
+        if (day < 1 || day > 31) {
+            throw new IllegalStateException(key + "는 1~31 범위여야 합니다.");
+        }
+    }
+
     /**
      * 정책 적용 기간(급여월) 검증
      *

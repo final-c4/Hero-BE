@@ -110,4 +110,17 @@ public class PayrollPolicy {
         this.status = PolicyStatus.EXPIRED;
         this.activeYn = "N";
     }
+
+    /**
+     * 정책 기본 정보 수정
+     * - null 또는 빈 값은 기존 값을 유지
+     * - 상태 전이는 포함하지 않음
+     */
+    public void update(String name, String from, String to, String activeYn) {
+        if (name != null && !name.isBlank()) this.policyName = name;
+        if (from != null && !from.isBlank()) this.salaryMonthFrom = from;
+        // to는 null 허용(무기한)
+        if (to != null || this.salaryMonthTo != null) this.salaryMonthTo = to;
+        if (activeYn != null && !activeYn.isBlank()) this.activeYn = activeYn;
+    }
 }

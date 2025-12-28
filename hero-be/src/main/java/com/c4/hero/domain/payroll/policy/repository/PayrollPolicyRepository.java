@@ -22,6 +22,26 @@ import java.util.Optional;
 public interface PayrollPolicyRepository extends JpaRepository<PayrollPolicy, Integer> {
 
     /**
+     * 정책 ID 기준 단건 조회
+     *
+     * @param policyId 급여 정책 ID
+     * @return 급여 정책 엔티티 (없을 수 있음)
+     */
+    Optional<PayrollPolicy> findById(Integer policyId);
+
+    /**
+     * 특정 상태의 정책 존재 여부 확인
+     *
+     * 용도
+     *  - ACTIVE 정책 존재 여부 사전 체크
+     *  - 정책 생성/활성화 시 비즈니스 규칙 검증
+     *
+     * @param status 확인할 정책 상태
+     * @return 존재 여부
+     */
+    boolean existsByStatus(PolicyStatus status);
+
+    /**
      * 특정 상태를 가진 가장 최근 정책 조회 (비관적 락 적용)
      *  - 정책 활성화/전환 시 동시성 문제를 방지하기 위한 용도
      *
