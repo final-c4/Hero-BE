@@ -149,8 +149,14 @@
                     ))
                 </when>
 
-                <!-- 대기: 결재 대기 중인 문서 (본인이 결재해야 하는 문서) -->
+                <!-- 요청: 본인이 상신한 문서 -->
                 <when test="tab == 'que'">
+                    D.drafter_id = #{employeeId}
+                    AND D.doc_status != 'DRAFT'
+                </when>
+
+                <!-- 대기: 결재 대기 중인 문서 (본인이 결재해야 하는 문서) -->
+                <when test="tab == 'request'">
                     EXISTS (
                     SELECT 1 FROM tbl_approval_line AL
                     WHERE AL.doc_id = D.doc_id
@@ -158,12 +164,6 @@
                     AND AL.line_status = 'PENDING'
                     AND D.doc_status = 'INPROGRESS'
                     )
-                </when>
-
-                <!-- 요청: 본인이 상신한 문서 -->
-                <when test="tab == 'request'">
-                    D.drafter_id = #{employeeId}
-                    AND D.doc_status != 'DRAFT'
                 </when>
 
                 <!-- 반려: 반려된 문서 (본인이 상신했거나 결재선에 포함된 문서 중 반려) -->
