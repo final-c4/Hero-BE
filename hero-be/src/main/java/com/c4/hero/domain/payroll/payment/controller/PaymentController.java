@@ -2,9 +2,9 @@ package com.c4.hero.domain.payroll.payment.controller;
 
 import com.c4.hero.common.response.CustomResponse;
 import com.c4.hero.common.response.PageResponse;
-import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentDetailResponse;
-import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentSearchRequest;
-import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentSearchRowResponse;
+import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentDetailResponseDTO;
+import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentSearchRequestDTO;
+import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentSearchRowResponseDTO;
 import com.c4.hero.domain.payroll.payment.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -66,7 +66,7 @@ public class PaymentController {
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
     @GetMapping("/search")
-    public CustomResponse<com.c4.hero.common.response.PageResponse<PayrollPaymentSearchRowResponse>> search(
+    public CustomResponse<com.c4.hero.common.response.PageResponse<PayrollPaymentSearchRowResponseDTO>> search(
             @RequestParam String salaryMonth,
             @RequestParam(required = false) Integer departmentId,
             @RequestParam(required = false) Integer jobTitleId,
@@ -74,7 +74,7 @@ public class PaymentController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size
     ) {
-        PayrollPaymentSearchRequest req = new PayrollPaymentSearchRequest(
+        PayrollPaymentSearchRequestDTO req = new PayrollPaymentSearchRequestDTO(
                 salaryMonth, departmentId, jobTitleId, keyword
         );
 
@@ -97,15 +97,15 @@ public class PaymentController {
                     responseCode = "200",
                     description = "급여 상세 조회 성공",
                     content = @Content(schema = @Schema(
-                            implementation = PayrollPaymentDetailResponse.class
+                            implementation = PayrollPaymentDetailResponseDTO.class
                     ))
             ),
             @ApiResponse(responseCode = "404", description = "급여 정보 없음"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
     })
     @GetMapping("/{payrollId}")
-    public CustomResponse<PayrollPaymentDetailResponse> detail(@PathVariable Integer payrollId) {
-        PayrollPaymentDetailResponse data = service.getDetail(payrollId);
+    public CustomResponse<PayrollPaymentDetailResponseDTO> detail(@PathVariable Integer payrollId) {
+        PayrollPaymentDetailResponseDTO data = service.getDetail(payrollId);
 
         return CustomResponse.success(data);
     }

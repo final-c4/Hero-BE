@@ -58,7 +58,7 @@
 
 
     <select id="selectPayrollSearch"
-            resultType="com.c4.hero.domain.payroll.payment.dto.PayrollPaymentSearchRowResponse">
+            resultType="com.c4.hero.domain.payroll.payment.dto.PayrollPaymentSearchRowResponseDTO">
         SELECT
         p.payroll_id AS payrollId,
         e.employee_id AS employeeId,
@@ -100,7 +100,7 @@
 
 
     <select id="selectPayrollDetail"
-            resultType="com.c4.hero.domain.payroll.payment.dto.PayrollPaymentDetailSummaryResponse">
+            resultType="com.c4.hero.domain.payroll.payment.dto.PayrollPaymentDetailSummaryResponseDTO">
         SELECT
             p.payroll_id AS payrollId,
             p.salary_month AS salaryMonth,
@@ -126,7 +126,7 @@
 
 
     <select id="selectPayrollItems"
-            resultType="com.c4.hero.domain.payroll.payment.dto.PayrollPaymentDetailResponse$PayrollItemRow">
+            resultType="com.c4.hero.domain.payroll.payment.dto.PayrollPaymentDetailResponseDTO$PayrollItemRow">
         SELECT
             pi.payroll_item_id AS payrollItemId,
             pi.item_type AS itemType,

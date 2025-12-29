@@ -12,7 +12,7 @@ package com.c4.hero.domain.payroll.payment.dto;
  * @author 동근
  * @version 1.0
  */
-public record PayrollPaymentSearchRequest(
+public record PayrollPaymentSearchRequestDTO(
         String salaryMonth,
         Integer departmentId,
         Integer jobTitleId,

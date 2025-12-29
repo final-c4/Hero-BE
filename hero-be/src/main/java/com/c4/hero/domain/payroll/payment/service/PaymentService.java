@@ -3,10 +3,10 @@ package com.c4.hero.domain.payroll.payment.service;
 import com.c4.hero.common.pagination.PageCalculator;
 import com.c4.hero.common.pagination.PageInfo;
 import com.c4.hero.common.response.PageResponse;
-import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentDetailResponse;
-import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentDetailSummaryResponse;
-import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentSearchRequest;
-import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentSearchRowResponse;
+import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentDetailResponseDTO;
+import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentDetailSummaryResponseDTO;
+import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentSearchRequestDTO;
+import com.c4.hero.domain.payroll.payment.dto.PayrollPaymentSearchRowResponseDTO;
 import com.c4.hero.domain.payroll.payment.mapper.PaymentHistoryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -42,8 +42,8 @@ public class PaymentService {
      * @return 급여 조회 목록(페이징)
      * @throws IllegalArgumentException salaryMonth가 누락/공백인 경우
      */
-    public PageResponse<PayrollPaymentSearchRowResponse> search(
-            PayrollPaymentSearchRequest req,
+    public PageResponse<PayrollPaymentSearchRowResponseDTO> search(
+            PayrollPaymentSearchRequestDTO req,
             int page,
             int size
     ) {
@@ -55,7 +55,7 @@ public class PaymentService {
 
         PageInfo pageInfo = PageCalculator.calculate(page, size, totalCount);
 
-        List<PayrollPaymentSearchRowResponse> items = (totalCount == 0)
+        List<PayrollPaymentSearchRowResponseDTO> items = (totalCount == 0)
                 ? List.of()
                 : mapper.selectPayrollSearch(req, pageInfo.getOffset(), pageInfo.getSize());
 
@@ -70,15 +70,15 @@ public class PaymentService {
      * @return 급여 상세 정보 (요약 + breakdown 항목)
      * @throws IllegalArgumentException payrollId에 해당하는 급여 정보가 없는 경우
      */
-    public PayrollPaymentDetailResponse getDetail(Integer payrollId) {
-        PayrollPaymentDetailSummaryResponse summary = mapper.selectPayrollDetail(payrollId);
+    public PayrollPaymentDetailResponseDTO getDetail(Integer payrollId) {
+        PayrollPaymentDetailSummaryResponseDTO summary = mapper.selectPayrollDetail(payrollId);
         if (summary == null) {
             throw new IllegalArgumentException("해당 payrollId의 급여 정보가 없습니다. payrollId=" + payrollId);
         }
 
-        List<PayrollPaymentDetailResponse.PayrollItemRow> items = mapper.selectPayrollItems(payrollId);
+        List<PayrollPaymentDetailResponseDTO.PayrollItemRow> items = mapper.selectPayrollItems(payrollId);
 
-        return new PayrollPaymentDetailResponse(
+        return new PayrollPaymentDetailResponseDTO(
                 summary.payrollId(),
                 summary.salaryMonth(),
                 summary.payrollStatus(),

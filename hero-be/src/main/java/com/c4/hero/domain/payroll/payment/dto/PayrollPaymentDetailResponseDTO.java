@@ -14,7 +14,7 @@ import java.util.List;
  * @author 동근
  * @version 1.0
  */
-public record PayrollPaymentDetailResponse(
+public record PayrollPaymentDetailResponseDTO(
         Integer payrollId,
         String salaryMonth,
         String payrollStatus,
