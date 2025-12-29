@@ -16,10 +16,13 @@ import com.c4.hero.domain.settings.dto.response.SettingsApprovalResponseDTO;
 import com.c4.hero.domain.settings.dto.response.SettingsDepartmentResponseDTO;
 import com.c4.hero.domain.settings.dto.response.SettingsDocumentTemplateResponseDTO;
 import com.c4.hero.domain.settings.dto.response.SettingsPermissionsResponseDTO;
+import com.c4.hero.domain.settings.service.SettingsAttendanceService;
 import com.c4.hero.domain.settings.service.SettingsCommandService;
 import com.c4.hero.domain.settings.service.SettingsNotificationCommandService;
 import com.c4.hero.domain.settings.service.SettingsNotificationQueryService;
 import com.c4.hero.domain.settings.service.SettingsQueryService;
+import com.c4.hero.domain.settings.dto.response.WSTAttResDTO;
+import com.c4.hero.domain.settings.dto.request.WSTAttReqDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +68,7 @@ public class SettingsController {
     private final NotificationCommandService notificationCommandService;
     private final SettingsNotificationCommandService settingsNotificationCommandService;
     private final SettingsNotificationQueryService settingsNotificationQueryService; // 추가
+    private final SettingsAttendanceService  settingsAttendanceService;
 
     /**
      * 부서 목록 조회 (트리 구조)
@@ -369,5 +373,32 @@ public class SettingsController {
                 settingsNotificationQueryService.checkWebSocketHealth();
 
         return ResponseEntity.ok(CustomResponse.success(health));
+    }
+
+    /**
+     * 근무제(Work System Template) 목록 조회
+     *
+     * @return 근무제 템플릿 목록
+     */
+    @GetMapping("/attendance/work-system-templates")
+    public ResponseEntity<CustomResponse<List<WSTAttResDTO>>> getWorkSystemTemplates() {
+        List<WSTAttResDTO> list = settingsAttendanceService.getWorkSystemTemplates();
+        return ResponseEntity.ok(CustomResponse.success(list));
+    }
+
+    /**
+     * 근무제(Work System Template) 저장(업서트)
+     * - 신규: workSystemTemplateId = null  -> INSERT
+     * - 수정: workSystemTemplateId != null -> UPDATE
+     *
+     * @param requestList 저장/수정할 근무제 템플릿 목록
+     * @return 성공 메시지
+     */
+    @PutMapping("/attendance/work-system-templates")
+    public ResponseEntity<CustomResponse<String>> upsertWorkSystemTemplates(
+            @RequestBody List<WSTAttReqDTO> requestList
+    ) {
+        settingsAttendanceService.upsertWorkSystemTemplates(requestList);
+        return ResponseEntity.ok(CustomResponse.success("Work system templates upserted successfully"));
     }
 }

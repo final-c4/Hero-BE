@@ -10,6 +10,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -35,6 +37,8 @@ import java.time.LocalTime;
 @Table(name = "tbl_work_system_template")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@AllArgsConstructor
+@Builder
 public class WorkSystemTemplate {
 
     /** 근무제 템플릿 PK (식별자) */
@@ -51,8 +55,46 @@ public class WorkSystemTemplate {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
+    @Column(name = "break_min_minutes", nullable = false)
+    private Integer breakMinMinutes;
+
+    @Column(name = "reason", length = 255)
+    private String reason;
+
     /** 이 템플릿이 속한 근무제 유형 */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "work_system_type_id")
     private WorkSystemType workSystemType;
+
+    /** 업데이트용 도메인 메서드(Setter 대신) */
+    public void update(
+            LocalTime startTime,
+            LocalTime endTime,
+            Integer breakMinMinutes,
+            String reason,
+            WorkSystemType workSystemType
+    ) {
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.breakMinMinutes = breakMinMinutes;
+        this.reason = reason;
+        this.workSystemType = workSystemType;
+    }
+
+    public static WorkSystemTemplate create(
+            LocalTime startTime,
+            LocalTime endTime,
+            Integer breakMinMinutes,
+            String reason,
+            WorkSystemType workSystemType
+    ) {
+        WorkSystemTemplate t = new WorkSystemTemplate();
+        t.startTime = startTime;
+        t.endTime = endTime;
+        t.breakMinMinutes = breakMinMinutes;
+        t.reason = reason;
+        t.workSystemType = workSystemType;
+        return t;
+    }
+
 }
