@@ -71,6 +71,7 @@ public class EmployeeController {
     private final EmployeeSealService employeeSealService;
 
 
+
     private final JwtUtil jwtUtil;
     /**
      * 직원 회원가입
