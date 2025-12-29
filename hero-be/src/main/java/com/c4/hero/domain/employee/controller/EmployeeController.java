@@ -256,7 +256,7 @@ public class EmployeeController {
     /**
      * 사원번호로 프로필 조회
      *
-     * @param employeeNumber 사원번호 (예: EMP005)
+     * @param employeeNumber 사원번호
      * @return 직원 프로필 정보
      */
     @Operation(summary = "사원번호로 프로필 조회", description = "사원번호를 통한 직원 프로필 조회")
