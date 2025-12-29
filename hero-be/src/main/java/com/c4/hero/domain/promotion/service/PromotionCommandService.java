@@ -418,11 +418,9 @@ public class PromotionCommandService {
         detailsMap.put("status", "재직");
         detailsMap.put("reason", request.getReason()); // 특별 승진 사유
         String detailsJson;
-        try {
-            detailsJson = objectMapper.writeValueAsString(detailsMap);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize promotion details to JSON", e);
-        }
+
+        detailsJson = objectMapper.writeValueAsString(detailsMap);
+
         // 결재 요청 DTO 생성
         ApprovalRequestDTO approvalRequest = ApprovalRequestDTO.builder()
                 .formType("personnelappointment")
@@ -469,7 +467,7 @@ public class PromotionCommandService {
         }
 
         // 기본 결재선이 없으면 기안자의 부서장으로 설정
-        Integer approverId = 1; // 기본값 (인사팀장)
+        Integer approverId = 1; // 기본값: 관리자
         if (userDetails.getDepartmentId() != null) {
             EmployeeDepartment department = departmentRepository.findById(userDetails.getDepartmentId()).orElse(null);
             if (department != null && department.getManagerId() != null && !department.getManagerId().equals(userDetails.getEmployeeId())) {
