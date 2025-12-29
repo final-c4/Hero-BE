@@ -23,6 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 
 /**
  * <pre>
@@ -93,6 +98,16 @@ public class AttendanceController {
     @Operation(summary = "개인 근태 요약 조회",
                description = "근태 관리 상단 탭"
     )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "개인 근태 기록 목록 조회 성공",
+                    content = @Content(schema = @Schema(implementation = PageResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(page/size/date 범위 등)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패(JWT 누락/만료/위조)"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
     @GetMapping("/personal/summary")
     public AttSummaryDTO getPersonalSummary(
             HttpServletRequest request,
@@ -100,6 +115,7 @@ public class AttendanceController {
             @RequestParam(required = false) LocalDate endDate
     ) {
         Integer employeeId = getEmployeeIdFromToken(request);
+
 
         return attendanceService.getPersonalSummary(employeeId, startDate, endDate);
     }
@@ -120,6 +136,14 @@ public class AttendanceController {
     @Operation( summary = "개인 근태 기록 목록 조회",
             description = "로그인한 사용자의 근태 이력을 조회"
     )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "개인 근태 기록 목록 조회 성공",
+                    content = @Content(schema = @Schema(implementation = PageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(page/size/date 범위 등)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패(JWT 누락/만료/위조)"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+
     @GetMapping("/personal")
     public PageResponse<PersonalDTO> getPersonalList(
             HttpServletRequest request,
@@ -146,6 +170,14 @@ public class AttendanceController {
     @Operation( summary = "개인 초과 근무 이력 조회",
             description = "개인 초과 근무(연장 근무) 이력(페이지)을 조회"
     )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "초과 근무 이력 조회 성공",
+                    content = @Content(schema = @Schema(implementation = PageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(page/size/date 범위 등)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패(JWT 누락/만료/위조)"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+
     @GetMapping("/overtime")
     public PageResponse<OvertimeDTO> getOvertimeList(
             HttpServletRequest request,
@@ -173,6 +205,14 @@ public class AttendanceController {
             summary = "개인 근태 정정 요청 이력 조회",
             description = "개인 근태 정정 요청 이력(페이지)을 조회"
     )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "근태 정정 요청 이력 조회 성공",
+                    content = @Content(schema = @Schema(implementation = PageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(page/size/date 범위 등)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패(JWT 누락/만료/위조)"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+
     @GetMapping("/correction")
     public PageResponse<CorrectionDTO> getCorrectionList(
             HttpServletRequest request,
@@ -200,6 +240,14 @@ public class AttendanceController {
             summary = "개인 근무제 변경 이력 조회",
             description = "개인 근무제 변경이력(페이지)을 조회"
     )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "근무제 변경 이력 조회 성공",
+                    content = @Content(schema = @Schema(implementation = PageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(page/size/date 범위 등)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패(JWT 누락/만료/위조)"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+
     @GetMapping("/changelog")
     public PageResponse<ChangeLogDTO> getChangeLogList(
             HttpServletRequest request,
@@ -234,6 +282,15 @@ public class AttendanceController {
             summary = "부서 근태 현황 조회",
             description = "부서 근태 현황(당일 기준)을 조회"
     )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "부서 근태 현황 조회 성공",
+                    content = @Content(schema = @Schema(implementation = PageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(departmentId/workDate/page/size 등)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패(JWT 누락/만료/위조)"),
+            @ApiResponse(responseCode = "403", description = "권한 없음(부서 조회 권한 부족)"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+
     @GetMapping("/deptworksystem")
     public PageResponse<DeptWorkSystemDTO> getDeptWorkSystemList(
             HttpServletRequest request,
@@ -276,6 +333,13 @@ public class AttendanceController {
             summary = "근태 점수 대시보드 조회",
             description = "근태 점수 대시보드(직원별 점수 리스트)를 조회"
     )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "근태 점수 대시보드 조회 성공",
+                    content = @Content(schema = @Schema(implementation = PageResponse.class))),
+            @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(month 형식/scoreSort/page/size 등)"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+
     @GetMapping("/dashboard")
     public PageResponse<AttendanceDashboardDTO> getAttendanceDashboardList(
             @RequestParam(name = "departmentId", required = false) Integer departmentId,
@@ -309,6 +373,13 @@ public class AttendanceController {
             summary = "근태 점수 대시보드 요약 조회",
             description = "근태 점수 대시보드 상단 요약(전체/우수/위험 직원 수)을 조회"
     )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "근태 점수 대시보드 요약 조회 성공",
+                    content = @Content(schema = @Schema(implementation = AttendanceDashboardSummaryDTO.class))),
+            @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(month 형식 등)"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+
     @GetMapping("/dashboard/summary")
     public AttendanceDashboardSummaryDTO getAttendanceDashboardSummary(
             @RequestParam(name = "departmentId", required = false) Integer departmentId,
@@ -341,6 +412,14 @@ public class AttendanceController {
             summary = "직원 반기 근태 대시보드 조회",
             description = "직원 1명의 반기(상/하반기) 근태 대시보드(차트 Drawer)를 조회"
     )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "직원 반기 근태 대시보드 조회 성공",
+                    content = @Content(schema = @Schema(implementation = AttendanceEmployeeHalfDashboardDTO.class))),
+            @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(employeeId/year/half 등)"),
+            @ApiResponse(responseCode = "404", description = "직원 정보 없음(employeeId에 해당하는 직원 없음)"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+
     @GetMapping("/dashboard/employee")
     public AttendanceEmployeeHalfDashboardDTO getEmployeeHalfDashboard(
             @RequestParam Integer employeeId,

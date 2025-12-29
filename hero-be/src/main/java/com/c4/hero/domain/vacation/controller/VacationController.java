@@ -16,7 +16,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -58,6 +61,17 @@ public class VacationController {
             summary = "개인 휴가 이력 조회",
             description = "개인 휴가 이력을 페이지 단위로 조회"
     )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "개인 휴가 이력 조회 성공",
+                    content = @Content(schema = @Schema(implementation = PageResponse.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(startDate/endDate/page/size 등)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패(JWT 누락/만료/위조)"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+
     @GetMapping("/history")
     public PageResponse<VacationHistoryDTO> getVacationHistory(
             HttpServletRequest request,
@@ -86,6 +100,18 @@ public class VacationController {
             summary = "부서 휴가 캘린더 조회",
             description = "부서 휴가 캘린더(월 단위)를 조회"
     )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "부서 휴가 캘린더 조회 성공",
+                    content = @Content(schema = @Schema(implementation = DepartmentVacationDTO.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(year/month 범위 등)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패(JWT 누락/만료/위조)"),
+            @ApiResponse(responseCode = "403", description = "권한 없음(부서 캘린더 조회 권한 부족)"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+
     @GetMapping("/department/calendar")
     public List<DepartmentVacationDTO> getDepartmentVacationCalendar(
             HttpServletRequest request,
@@ -103,6 +129,16 @@ public class VacationController {
             summary = "개인 휴가 요약 조회",
             description = "로그인한 사용자의 휴가 요약 정보를 조회"
     )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "개인 휴가 요약 조회 성공",
+                    content = @Content(schema = @Schema(implementation = VacationSummaryDTO.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "인증 실패(JWT 누락/만료/위조)"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+
     @GetMapping("/summary")
     public VacationSummaryDTO getVacationSummary(HttpServletRequest request) {
         Integer employeeId = getEmployeeIdFromToken(request);
@@ -131,6 +167,17 @@ public class VacationController {
             summary = "Google Calendar 휴가 동기화",
             description = "특정 월의 휴가 로그를 Google Calendar에 동기화"
     )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Google Calendar 동기화 성공",
+                    content = @Content(schema = @Schema(implementation = VacationService.SyncResult.class))
+            ),
+            @ApiResponse(responseCode = "400", description = "요청 파라미터 오류(year/month 범위 등)"),
+            @ApiResponse(responseCode = "401", description = "인증 실패(JWT 누락/만료/위조)"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+
     @PostMapping("/google-calendar/sync")
     public VacationService.SyncResult syncGoogleCalendar(
             HttpServletRequest request,
