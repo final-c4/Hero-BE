@@ -29,10 +29,12 @@ public class OrganizationEmployeeDetailDTO {
 
     private Integer employeeId;
     private String employeeName;
-    private String employeeNumber; // 사번
-    private String gradeName;      // 직급명
-    private String jobTitleName;   // 직책명
-    private String imagePath;      // 프로필 이미지 경로
+    private String employeeNumber;  // 사번
+    private Integer gradeId;        // 직급 ID
+    private String gradeName;       // 직급명
+    private Integer jobTitleId;     // 직책 ID
+    private String jobTitleName;    // 직책명
+    private String imagePath;       // 프로필 이미지 경로
     
     private String email;          // 이메일 (복호화된 값)
     private String phone;          // 전화번호 (복호화된 값)

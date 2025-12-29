@@ -30,8 +30,11 @@ public class OrganizationNodeDTO {
 
     private Integer departmentId;
     private String departmentName;
+    private String departmentPhone;
     private Integer parentDepartmentId;
     private Integer depth;
+    private Integer managerId;
+
 
     // 하위 부서 목록
     @Builder.Default
