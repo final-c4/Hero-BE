@@ -3,6 +3,7 @@ package com.c4.hero.domain.employee.service;
 import com.c4.hero.common.exception.BusinessException;
 import com.c4.hero.common.exception.ErrorCode;
 import com.c4.hero.common.util.EncryptionUtil;
+import com.c4.hero.domain.employee.dto.request.SealTextUpdateRequestDTO;
 import com.c4.hero.domain.employee.dto.request.SignupRequestDTO;
 import com.c4.hero.domain.employee.entity.*;
 import com.c4.hero.domain.employee.entity.EmployeeDepartment;
@@ -67,6 +68,8 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
     private final EmployeeGradeHistoryRepository employeeGradeHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final JavaMailSender mailSender;
+    private final EmployeeSealService employeeSealService;
+
 
     private final EncryptionUtil encryptionUtil;
 
@@ -159,8 +162,34 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         // 7. 직급 이력 저장
         addGradeHistory(savedEmployee, ChangeType.CREATE, employeeDepartment.getDepartmentName());
 
-        // 8. 이메일 발송 로직 (tempPassword 발송)
+        // 8. 직인 자동 생성
+        autoGenerateSeal(savedEmployee.getEmployeeId(), request.getEmployeeName());
+
+        // 9. 이메일 발송 로직 (tempPassword 발송)
         sendTemporaryPasswordEmail(request.getEmail(), accountId, tempPassword);
+    }
+
+    /**
+     * 회원가입 시 직인 자동 생성
+     *
+     * @param employeeId 직원 ID
+     * @param employeeName 직원 이름 (직인 텍스트로 사용)
+     */
+    private void autoGenerateSeal(Integer employeeId, String employeeName) {
+        try {
+            SealTextUpdateRequestDTO sealDTO = SealTextUpdateRequestDTO.builder()
+                    .sealText(employeeName)
+                    .build(); 
+
+            employeeSealService.updateSealText(employeeId, sealDTO);
+            log.info("회원가입 시 직인 자동 생성 완료 - employeeId: {}, name: {}",
+                    employeeId, employeeName);
+
+        } catch (Exception e) {
+            // 직인 생성 실패해도 회원가입은 정상 처리
+            log.warn("직인 자동 생성 실패 (회원가입은 정상 처리) - employeeId: {}, name: {}",
+                    employeeId, employeeName, e);
+        }
     }
 
     /**
