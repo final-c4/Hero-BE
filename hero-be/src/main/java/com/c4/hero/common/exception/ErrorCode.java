@@ -16,15 +16,17 @@ import org.springframework.http.HttpStatus;
  * History
  * 2025-11-28 (혜원) 최초 작성
  * 2025-12-09 (승건) 사원 추가 시 발생할 수 있는 에러 추가
- * 2025-12-09 (이승건) 토큰 재발급 관련 에러 추가
- * 2025-12-09 (이승건) Access Token 만료 에러 추가
+ * 2025-12-09 (승건) 토큰 재발급 관련 에러 추가
+ * 2025-12-09 (승건) Access Token 만료 에러 추가
  * 2025-12-16 (동근) 급여 관련 에러 코드 추가
  * 2025-12-16 (승건) 부서장 관련 에러 코드 추가
  * 2025-12-22 (승건) 승진 관련 에러 코드 추가
+ * 2025-12-26 (혜원) 출퇴근 타각 관련 에러 코드 추가
+ * 2025-12-29 (승건) 파일 업로드 실패 추가
  * </pre>
  *
  * @author 혜원
- * @version 1.5
+ * @version 1.7
  */
 @Getter
 @RequiredArgsConstructor
@@ -76,6 +78,11 @@ public enum ErrorCode {
      */
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "C009", "접근 권한이 없습니다."),
 
+    /**
+     * 파일 업로드 실패
+     */
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "C010", "파일 업로드에 실패했습니다."),
+
     // ===== 사원(Employee) 관련 에러 =====
     /**
      * 부서를 찾을 수 없음
@@ -121,8 +128,8 @@ public enum ErrorCode {
      * 부서장은 해당 부서 소속이어야 함
      */
     MANAGER_NOT_IN_DEPARTMENT(HttpStatus.BAD_REQUEST, "E009", "부서장은 해당 부서의 소속이어야 합니다."),
-    
-    
+
+
     // ===== 메일 관련 에러 =====
     /**
      * 이메일 발송 실패
@@ -193,6 +200,8 @@ public enum ErrorCode {
      * 배치 확정 불가 - 실패 건 존재
      */
     PAYROLL_BATCH_HAS_FAILED(HttpStatus.CONFLICT, "P108", "실패(FAILED) 처리된 사원이 있어 배치를 확정할 수 없습니다."),
+
+
     // ===== 승진(Promotion) 관련 에러 =====
     /**
      * 승진 계획을 찾을 수 없음
@@ -222,7 +231,44 @@ public enum ErrorCode {
     /**
      * 자기 추천 불가
      */
-    PROMOTION_SELF_NOMINATION_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "PR006", "본인을 추천할 수 없습니다.");
+    PROMOTION_SELF_NOMINATION_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "PR006", "본인을 추천할 수 없습니다."),
+
+    /**
+     * 승진 TO 초과
+     */
+    PROMOTION_QUOTA_EXCEEDED(HttpStatus.CONFLICT, "PR007", "승진 TO를 초과할 수 없습니다."),
+
+    /**
+     * 승진 상세 계획을 찾을 수 없음
+     */
+    PROMOTION_DETAIL_NOT_FOUND(HttpStatus.BAD_REQUEST, "PR008", "해당 승진 상세 계획을 찾을 수 없습니다."),
+
+
+    // ===== 출퇴근 타각(TimeClock) 관련 에러 =====
+    /**
+     * 이미 출근 처리됨
+     */
+    ALREADY_CLOCKED_IN(HttpStatus.BAD_REQUEST, "TC001", "이미 출근 처리되었습니다."),
+
+    /**
+     * 출근 기록 없음
+     */
+    NOT_CLOCKED_IN(HttpStatus.BAD_REQUEST, "TC002", "출근 기록이 없습니다. 먼저 출근해주세요."),
+
+    /**
+     * 이미 퇴근 처리됨
+     */
+    ALREADY_CLOCKED_OUT(HttpStatus.BAD_REQUEST, "TC003", "이미 퇴근 처리되었습니다."),
+
+    /**
+     * 출근 처리 실패
+     */
+    CLOCK_IN_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TC004", "출근 처리에 실패했습니다."),
+
+    /**
+     * 퇴근 처리 실패
+     */
+    CLOCK_OUT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TC005", "퇴근 처리에 실패했습니다.");
 
 
     /** HTTP 상태 코드 */

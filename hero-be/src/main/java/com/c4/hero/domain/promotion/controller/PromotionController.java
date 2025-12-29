@@ -4,11 +4,16 @@ import com.c4.hero.common.exception.BusinessException;
 import com.c4.hero.common.exception.ErrorCode;
 import com.c4.hero.common.response.CustomResponse;
 import com.c4.hero.common.response.PageResponse;
+import com.c4.hero.domain.auth.security.CustomUserDetails;
 import com.c4.hero.domain.auth.security.JwtUtil;
+import com.c4.hero.domain.promotion.dto.request.DirectPromotionRequestDTO;
 import com.c4.hero.domain.promotion.dto.request.PromotionNominationRequestDTO;
 import com.c4.hero.domain.promotion.dto.request.PromotionPlanRequestDTO;
-import com.c4.hero.domain.promotion.dto.response.PromotionOptionsDTO;
+import com.c4.hero.domain.promotion.dto.request.PromotionReviewRequestDTO;
+import com.c4.hero.domain.promotion.dto.response.PromotionDetailForReviewResponseDTO;
+import com.c4.hero.domain.promotion.dto.response.PromotionOptionsResponseDTO;
 import com.c4.hero.domain.promotion.dto.response.PromotionPlanDetailResponseDTO;
+import com.c4.hero.domain.promotion.dto.response.PromotionPlanForReviewResponseDTO;
 import com.c4.hero.domain.promotion.dto.response.PromotionPlanResponseDTO;
 import com.c4.hero.domain.promotion.service.PromotionCommandService;
 import com.c4.hero.domain.promotion.service.PromotionQueryService;
@@ -17,6 +22,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,10 +43,13 @@ import java.util.List;
  * History
  * 2025/12/19 (승건) 최초 작성
  * 2025/12/22 (승건) 추천 관련 API 추가
+ * 2025/12/23 (승건) 심사 관련 API 추가
+ * 2025/12/24 (승건) 심사 목록 조회 API 추가
+ * 2025/12/28 (승건) 즉시 승진 API 추가
  * </pre>
  *
  * @author 승건
- * @version 1.1
+ * @version 1.4
  */
 @RestController
 @RequestMapping("/api/promotion")
@@ -98,8 +107,8 @@ public class PromotionController {
      * @return 부서 트리 구조와 직급 목록
      */
     @GetMapping("/plan/options")
-    public ResponseEntity<CustomResponse<PromotionOptionsDTO>> getPromotionOptions() {
-        PromotionOptionsDTO response = promotionQueryService.getPromotionOptions();
+    public ResponseEntity<CustomResponse<PromotionOptionsResponseDTO>> getPromotionOptions() {
+        PromotionOptionsResponseDTO response = promotionQueryService.getPromotionOptions();
         return ResponseEntity.ok(CustomResponse.success(response));
     }
 
@@ -190,4 +199,75 @@ public class PromotionController {
         promotionCommandService.cancelNomination(candidateId, nominatorId);
         return ResponseEntity.ok(CustomResponse.success());
     }
+
+    /**
+     * (인사팀용) 심사 가능한 승진 계획 목록을 조회합니다.
+     * 추천 마감일이 지난 계획만 조회됩니다.
+     *
+     * @return 심사 대상 승진 계획 목록
+     */
+    @GetMapping("/reviews")
+    public ResponseEntity<CustomResponse<List<PromotionPlanResponseDTO>>> getPromotionPlansForReview() {
+        List<PromotionPlanResponseDTO> response = promotionQueryService.getPromotionPlansForReviewList();
+        return ResponseEntity.ok(CustomResponse.success(response));
+    }
+
+    /**
+     * (인사팀용) 심사용 승진 계획 상세 정보를 조회합니다.
+     *
+     * @param promotionId 승진 계획 ID
+     * @return 심사용 승진 계획 상세 정보 (승인 현황 포함)
+     */
+    @GetMapping("/review/{promotionId}")
+    public ResponseEntity<CustomResponse<PromotionPlanForReviewResponseDTO>> getReviewPromotionDetail(
+            @PathVariable Integer promotionId
+    ) {
+        PromotionPlanForReviewResponseDTO response = promotionQueryService.getPromotionDetailForReview(promotionId);
+        return ResponseEntity.ok(CustomResponse.success(response));
+    }
+
+    /**
+     * 승진 후보자를 심사합니다. (승인 또는 반려)
+     *
+     * @param request 심사 요청 정보
+     * @return 성공 응답
+     */
+    @PostMapping("/review")
+    public ResponseEntity<CustomResponse<Void>> reviewCandidate(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody PromotionReviewRequestDTO request
+    ) {
+        promotionCommandService.reviewCandidate(userDetails, request);
+        return ResponseEntity.ok(CustomResponse.success());
+    }
+
+    /**
+     * 최종 승인 처리합니다. (전자결재 연동 예정)
+     *
+     * @param request 심사 요청 정보
+     * @return 성공 응답
+     */
+    @PostMapping("/review/final")
+    public ResponseEntity<CustomResponse<Void>> confirmFinalApproval(
+            @RequestBody PromotionReviewRequestDTO request
+    ) {
+        promotionCommandService.confirmFinalApproval(request);
+        return ResponseEntity.ok(CustomResponse.success());
+    }
+
+    /**
+     * 특정 직원을 즉시 승진시킵니다. (특별 승진)
+     *
+     * @param request 즉시 승진 요청 정보
+     * @return 성공 응답
+     */
+    @PostMapping("/direct")
+    public ResponseEntity<CustomResponse<Void>> promoteDirectly(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody DirectPromotionRequestDTO request
+    ) {
+        promotionCommandService.promoteDirectly(userDetails, request);
+        return ResponseEntity.ok(CustomResponse.success());
+    }
+
 }

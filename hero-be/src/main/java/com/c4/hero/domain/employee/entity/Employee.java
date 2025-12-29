@@ -130,7 +130,7 @@ public class Employee {
     /**
      * 프로필 이미지 경로
      */
-    @Column(name = "image_path", nullable = false)
+    @Column(name = "image_path")
     private String imagePath;
 
     /**
@@ -182,6 +182,7 @@ public class Employee {
 
     public void changeGrade(Grade newGrade) {
         this.grade = newGrade;
+        this.evaluationPoint = 0;
     }
     public void changeJobTitle(JobTitle newJobTitle) {
         this.jobTitle = newJobTitle;

@@ -6,7 +6,6 @@ import com.c4.hero.domain.notification.service.NotificationCommandService;
 import com.c4.hero.domain.notification.service.NotificationQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -170,7 +169,7 @@ public class NotificationController {
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content),
             @ApiResponse(responseCode = "404", description = "알림을 찾을 수 없음", content = @Content)
     })
-    @DeleteMapping("/{notificationId}")
+    @PatchMapping("/{notificationId}")
     public ResponseEntity<Void> softRemoveNotification(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Integer notificationId) {
