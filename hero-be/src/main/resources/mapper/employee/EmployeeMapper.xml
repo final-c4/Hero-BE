@@ -363,15 +363,12 @@
     </update>
 
     <!--
-    직인이 없는 직원 목록 조회
-    -->
-    <select id="findEmployeesWithoutSeal" resultType="map">
-        SELECT
-            employee_id,
-            employee_name
+       직인 이미지 생성을 위한 이름 조회
+   -->
+    <select id="findEmployeeNameById" parameterType="int" resultType="string">
+        SELECT employee_name
         FROM tbl_employee
-        WHERE (seal_image_url IS NULL OR seal_image_url = '')
-          AND status = 'A'
-        ORDER BY employee_id
+        WHERE employee_id = #{employeeId}
+          AND status != 'R'
     </select>
 </mapper>
