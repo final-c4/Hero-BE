@@ -179,7 +179,7 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         try {
             SealTextUpdateRequestDTO sealDTO = SealTextUpdateRequestDTO.builder()
                     .sealText(employeeName)
-                    .build(); 
+                    .build();
 
             employeeSealService.updateSealText(employeeId, sealDTO);
             log.info("회원가입 시 직인 자동 생성 완료 - employeeId: {}, name: {}",
