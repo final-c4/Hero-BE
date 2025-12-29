@@ -375,18 +375,43 @@ public class EmployeeController {
     }
 
     /**
-     * 직인이 없는 직원들에게 자동으로 직인 생성 (일괄 생성)
-     * 관리자가 호출하여 직인이 없는 모든 직원에게 이름으로 직인 자동 생성
+     * 내 직인 자동 생성
+     * 직인이 없을 때 이름으로 직인 자동 생성 (이미 있으면 skip)
      *
+     * @param userDetails Security Context에서 자동 주입
      * @return 성공 응답
+     * @author 혜원
      */
-    @Operation(summary = "직인 자동 생성 (일괄)", description = "직인이 없는 직원들에게 이름으로 직인 자동 생성")
-    @PostMapping("/seal/generate-all")
-    public ResponseEntity<CustomResponse<Void>> generateSealsForAllEmployees() {
-        log.info("직인 일괄 자동 생성 API 호출");
+    @Operation(summary = "내 직인 자동 생성", description = "직인이 없을 때 이름으로 직인 자동 생성 (이미 있으면 skip)")
+    @PostMapping("/seal/generate")
+    public ResponseEntity<CustomResponse<Void>> generateMySeal(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        employeeSealService.generateSealsForEmployeesWithoutSeal();
+        Integer employeeId = userDetails.getEmployeeId();
+        log.info("직인 자동 생성 요청 - employeeId: {}", employeeId);
+
+        employeeSealService.generateSealForEmployee(employeeId);
 
         return ResponseEntity.ok(CustomResponse.success());
+    }
+
+    /**
+     * 내 직인 이미지 조회
+     * Security Context에서 자동으로 사용자 정보 추출
+     *
+     * @param userDetails Security Context에서 자동 주입
+     * @return 직인 이미지 Presigned URL
+     */
+    @Operation(summary = "내 직인 이미지 조회", description = "현재 로그인한 사용자의 직인 이미지 URL 조회")
+    @GetMapping("/seal")
+    public ResponseEntity<CustomResponse<String>> getMySeal(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Integer employeeId = userDetails.getEmployeeId();
+        log.info("내 직인 조회 - employeeId: {}", employeeId);
+
+        String sealImageUrl = employeeSealService.getEmployeeSealUrl(employeeId);
+
+        return ResponseEntity.ok(CustomResponse.success(sealImageUrl));
     }
 }
