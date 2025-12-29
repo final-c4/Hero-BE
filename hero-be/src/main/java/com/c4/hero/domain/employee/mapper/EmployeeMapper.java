@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -136,4 +137,11 @@ public interface EmployeeMapper {
      */
     int updateSealImageUrl(@Param("employeeId") Integer employeeId,
                            @Param("sealImageUrl") String sealImageUrl);
+
+    /**
+     * 직인이 없는 직원 목록 조회
+     *
+     * @return 직원 ID와 이름 목록
+     */
+    List<Map<String, Object>> findEmployeesWithoutSeal();
 }

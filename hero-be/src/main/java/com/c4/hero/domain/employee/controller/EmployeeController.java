@@ -373,4 +373,20 @@ public class EmployeeController {
         employeeSealService.deleteSeal(employeeId);
         return ResponseEntity.ok(CustomResponse.success());
     }
+
+    /**
+     * 직인이 없는 직원들에게 자동으로 직인 생성 (일괄 생성)
+     * 관리자가 호출하여 직인이 없는 모든 직원에게 이름으로 직인 자동 생성
+     *
+     * @return 성공 응답
+     */
+    @Operation(summary = "직인 자동 생성 (일괄)", description = "직인이 없는 직원들에게 이름으로 직인 자동 생성")
+    @PostMapping("/seal/generate-all")
+    public ResponseEntity<CustomResponse<Void>> generateSealsForAllEmployees() {
+        log.info("직인 일괄 자동 생성 API 호출");
+
+        employeeSealService.generateSealsForEmployeesWithoutSeal();
+
+        return ResponseEntity.ok(CustomResponse.success());
+    }
 }

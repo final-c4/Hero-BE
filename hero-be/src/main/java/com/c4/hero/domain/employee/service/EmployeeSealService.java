@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * <pre>
  * Class Name: EmployeeSealService
@@ -126,5 +129,47 @@ public class EmployeeSealService {
         }
 
         log.info("직인 삭제 성공 - employeeId: {}", employeeId);
+    }
+
+    /**
+     * 직인이 없는 모든 직원에게 이름으로 직인 자동 생성
+     * 관리자가 일괄적으로 직인을 생성할 때 사용
+     */
+    @Transactional
+    public void generateSealsForEmployeesWithoutSeal() {
+        log.info("직인 일괄 자동 생성 시작");
+
+        // 직인이 없는 직원 목록 조회
+        List<Map<String, Object>> employeesWithoutSeal = employeeMapper.findEmployeesWithoutSeal();
+
+        if (employeesWithoutSeal.isEmpty()) {
+            log.info("직인이 없는 직원이 없습니다.");
+            return;
+        }
+
+        int successCount = 0;
+        int failCount = 0;
+
+        for (Map<String, Object> employee : employeesWithoutSeal) {
+            Integer employeeId = (Integer) employee.get("employee_id");
+            String employeeName = (String) employee.get("employee_name");
+
+            try {
+                SealTextUpdateRequestDTO sealDTO = SealTextUpdateRequestDTO.builder()
+                        .sealText(employeeName)
+                        .build();
+
+                updateSealText(employeeId, sealDTO);
+                successCount++;
+                log.info("직인 자동 생성 성공 - employeeId: {}, name: {}", employeeId, employeeName);
+
+            } catch (Exception e) {
+                failCount++;
+                log.warn("직인 자동 생성 실패 - employeeId: {}, name: {}", employeeId, employeeName, e);
+            }
+        }
+
+        log.info("직인 일괄 자동 생성 완료 - 성공: {}, 실패: {}, 총: {}",
+                successCount, failCount, employeesWithoutSeal.size());
     }
 }
