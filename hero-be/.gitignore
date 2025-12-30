@@ -6,7 +6,9 @@ build/
 !**/src/test/**/build/
 
 ## gitignore
-application-*.yml
+application.yml
+application-dev.yml
+application-secret.yml
 
 ### STS ###
 .apt_generated
