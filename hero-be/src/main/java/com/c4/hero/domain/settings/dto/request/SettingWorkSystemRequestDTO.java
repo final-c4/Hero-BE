@@ -23,7 +23,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class WSTAttReqDTO {
+public class SettingWorkSystemRequestDTO {
 
     /** 수정 대상 근무제 템플릿 ID (null이면 신규 생성으로 해석 가능) */
     private Integer workSystemTemplateId;

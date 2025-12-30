@@ -30,7 +30,7 @@
     <!-- =========================
         근태 설정 - 근무제 템플릿 조회 (WSTAttResDTO)
      ========================= -->
-    <resultMap id="wstAttResultMap" type="com.c4.hero.domain.settings.dto.response.WSTAttResDTO">
+    <resultMap id="wstAttResultMap" type="com.c4.hero.domain.settings.dto.response.SettingWorkSystemResponseDTO">
         <id property="workSystemTemplateId" column="work_system_template_id"/>
         <result property="startTime" column="start_time"/>
         <result property="endTime" column="end_time"/>

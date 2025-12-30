@@ -3,7 +3,7 @@ package com.c4.hero.domain.settings.mapper;
 import com.c4.hero.domain.settings.dto.response.SettingsNotificationHistoryResponseDTO;
 import com.c4.hero.domain.settings.dto.response.SettingsNotificationStatisticsResponseDTO;
 import com.c4.hero.domain.settings.dto.response.SettingsPermissionsResponseDTO;
-import com.c4.hero.domain.settings.dto.response.WSTAttResDTO;
+import com.c4.hero.domain.settings.dto.response.SettingWorkSystemResponseDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.domain.Pageable;
@@ -84,5 +84,5 @@ public interface SettingsMapper {
      *
      * @return 근무제 템플릿 목록
      */
-    List<WSTAttResDTO> selectWorkSystemTemplates();
+    List<SettingWorkSystemResponseDTO> selectWorkSystemTemplates();
 }

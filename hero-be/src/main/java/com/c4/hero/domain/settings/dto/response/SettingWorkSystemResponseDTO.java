@@ -21,7 +21,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class WSTAttResDTO {
+public class SettingWorkSystemResponseDTO {
 
     /** 근무제 템플릿 ID */
     private Integer workSystemTemplateId;

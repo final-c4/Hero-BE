@@ -2,8 +2,8 @@ package com.c4.hero.domain.settings.service;
 
 import com.c4.hero.domain.attendance.entity.WorkSystemTemplate;
 import com.c4.hero.domain.attendance.entity.WorkSystemType;
-import com.c4.hero.domain.settings.dto.request.WSTAttReqDTO;
-import com.c4.hero.domain.settings.dto.response.WSTAttResDTO;
+import com.c4.hero.domain.settings.dto.request.SettingWorkSystemRequestDTO;
+import com.c4.hero.domain.settings.dto.response.SettingWorkSystemResponseDTO;
 import com.c4.hero.domain.settings.mapper.SettingsMapper;
 import com.c4.hero.domain.settings.repository.SettingAttTemplateRepository;
 import com.c4.hero.domain.settings.repository.SettingAttTypeRepository;
@@ -58,8 +58,8 @@ public class SettingsAttendanceService {
      *
      * @return 근무제 템플릿 응답 DTO 리스트
      */
-    public List<WSTAttResDTO> getWorkSystemTemplates() {
-        List<WSTAttResDTO> list = settingsMapper.selectWorkSystemTemplates();
+    public List<SettingWorkSystemResponseDTO> getWorkSystemTemplates() {
+        List<SettingWorkSystemResponseDTO> list = settingsMapper.selectWorkSystemTemplates();
         log.debug("WorkSystemTemplates count={}", (list == null ? 0 : list.size()));
 
         return list;
@@ -85,13 +85,13 @@ public class SettingsAttendanceService {
      * @param requestList 근무제 템플릿 저장 요청 리스트
      */
     @Transactional // 클래스 레벨 readOnly=true를 override
-    public void upsertWorkSystemTemplates(List<WSTAttReqDTO> requestList) {
+    public void upsertWorkSystemTemplates(List<SettingWorkSystemRequestDTO> requestList) {
         if (requestList == null) {
             return;
         }
 
         // 1) 기본 유효성 검증
-        for (WSTAttReqDTO dto : requestList) {
+        for (SettingWorkSystemRequestDTO dto : requestList) {
             if (dto.getWorkSystemTypeId() == null) {
                 throw new IllegalArgumentException("workSystemTypeId는 필수입니다.");
             }
@@ -108,7 +108,7 @@ public class SettingsAttendanceService {
 
         // 2) 한 번에 필요한 WorkSystemType 로딩 (N+1 방지)
         Set<Integer> typeIds = requestList.stream()
-                .map(WSTAttReqDTO::getWorkSystemTypeId)
+                .map(SettingWorkSystemRequestDTO::getWorkSystemTypeId)
                 .collect(Collectors.toSet());
 
         Map<Integer, WorkSystemType> typeMap =
@@ -124,7 +124,7 @@ public class SettingsAttendanceService {
 
         // 3) 기존 템플릿도 한 번에 로딩 (UPDATE 대상)
         List<Integer> existingIds = requestList.stream()
-                .map(WSTAttReqDTO::getWorkSystemTemplateId)
+                .map(SettingWorkSystemRequestDTO::getWorkSystemTemplateId)
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
@@ -136,7 +136,7 @@ public class SettingsAttendanceService {
         // 4) INSERT/UPDATE 분기 처리
         List<WorkSystemTemplate> toSave = new ArrayList<>();
 
-        for (WSTAttReqDTO dto : requestList) {
+        for (SettingWorkSystemRequestDTO dto : requestList) {
             WorkSystemType type = typeMap.get(dto.getWorkSystemTypeId());
 
             // (A) INSERT: workSystemTemplateId == null

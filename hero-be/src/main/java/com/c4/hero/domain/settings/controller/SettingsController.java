@@ -21,8 +21,8 @@ import com.c4.hero.domain.settings.service.SettingsCommandService;
 import com.c4.hero.domain.settings.service.SettingsNotificationCommandService;
 import com.c4.hero.domain.settings.service.SettingsNotificationQueryService;
 import com.c4.hero.domain.settings.service.SettingsQueryService;
-import com.c4.hero.domain.settings.dto.response.WSTAttResDTO;
-import com.c4.hero.domain.settings.dto.request.WSTAttReqDTO;
+import com.c4.hero.domain.settings.dto.response.SettingWorkSystemResponseDTO;
+import com.c4.hero.domain.settings.dto.request.SettingWorkSystemRequestDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -382,8 +382,8 @@ public class SettingsController {
      * @return 근무제 템플릿 목록
      */
     @GetMapping("/attendance/work-system-templates")
-    public ResponseEntity<CustomResponse<List<WSTAttResDTO>>> getWorkSystemTemplates() {
-        List<WSTAttResDTO> list = settingsAttendanceService.getWorkSystemTemplates();
+    public ResponseEntity<CustomResponse<List<SettingWorkSystemResponseDTO>>> getWorkSystemTemplates() {
+        List<SettingWorkSystemResponseDTO> list = settingsAttendanceService.getWorkSystemTemplates();
         return ResponseEntity.ok(CustomResponse.success(list));
     }
 
@@ -397,7 +397,7 @@ public class SettingsController {
      */
     @PutMapping("/attendance/work-system-templates")
     public ResponseEntity<CustomResponse<String>> upsertWorkSystemTemplates(
-            @RequestBody List<WSTAttReqDTO> requestList
+            @RequestBody List<SettingWorkSystemRequestDTO> requestList
     ) {
         settingsAttendanceService.upsertWorkSystemTemplates(requestList);
         return ResponseEntity.ok(CustomResponse.success("Work system templates upserted successfully"));
