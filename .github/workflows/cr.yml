@@ -44,7 +44,7 @@ jobs:
         working-directory: ./hero-be  # 추가
         run: |
           mkdir -p src/main/resources
-          cat > src/main/resources/application.yml.template <<EOL
+          cat > src/main/resources/application-2.yml.template <<EOL
           server:
             port: 5000
             servlet:
