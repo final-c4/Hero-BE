@@ -43,8 +43,8 @@ jobs:
           GOOGLE_CALENDAR_ID: ${{ secrets.GOOGLE_CALENDAR_ID }}
           GOOGLE_CALENDAR_TIMEZONE: ${{ secrets.GOOGLE_CALENDAR_TIMEZONE }}
           GOOGLE_CALENDAR_APPLICATION_NAME: ${{ secrets.GOOGLE_CALENDAR_APPLICATION_NAME }}
-          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
         run: ./gradlew clean build -x test
         shell: bash
