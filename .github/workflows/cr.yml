@@ -1,16 +1,13 @@
 name: Deploy
 
-# GitHub 저장소 읽기 및 PR 쓰기 권한을 설정
 permissions:
   contents: read
   pull-requests: write
 
-# PR 이벤트 관련해서 워크플로우 실행
 on:
   pull_request:
     types: [opened, reopened, synchronize]
 
-# 워크플로우 실행 작업 정의
 jobs:
   deploy-java-17:
     runs-on: ubuntu-latest
@@ -25,69 +22,30 @@ jobs:
           distribution: 'corretto'
 
       - name: Grant execute permission for gradlew
+        working-directory: ./hero-be
         run: chmod +x ./gradlew
         shell: bash
-        working-directory: ./hero-be  # 추가
-
-      ##############################################################
-      # 이후 이 부분은 envsubst가 추가될 예정
-      ##############################################################
-
-      ###############################################
-
-      # envsubst 설치
-      - name: Install envsubst
-        run: sudo apt-get install -y gettext
-
-      # MariaDB 데이터베이스 연결을 위한 application.yml 파일을 환경 변수로 생성
-      - name: Create application.yml.template
-        working-directory: ./hero-be  # 추가
-        run: |
-          mkdir -p src/main/resources
-          cat > src/main/resources/application.yml.template <<EOL
-          server:
-            port: 5000
-            servlet:
-              encoding:
-                charset: UTF-8
-                force:           
-          
-          spring:
-            datasource:
-              driver-class-name: org.mariadb.jdbc.Driver
-              url: jdbc:mariadb://\${RDS_HOSTNAME}:\${RDS_PORT}/\${RDS_DB_NAME}
-              username: \${RDS_USERNAME}
-              password: \${RDS_PASSWORD}
-          
-            jpa:
-              generate-ddl: false
-              show-sql: true
-              database: mysql
-              properties:
-                hibernate:
-                  '[format_sql]': true
-          
-          EOL
-
-      # envsubst는 환경 변수를 치환해주는 유틸리티로, 템플릿 파일의 ${VARIABLE} 형태의 변수를 실제 환경 변수 값으로 대체
-      - name: Set Yaml
-        working-directory: ./hero-be  # 추가
-        run: |
-          envsubst < src/main/resources/application.yml.template > src/main/resources/application.yml
-          echo "Generated application.yml:"
-          cat src/main/resources/application.yml
-        env:
-          RDS_HOSTNAME: ${{ secrets.RDS_HOSTNAME }}
-          RDS_PORT: ${{ secrets.RDS_PORT }}
-          RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
-          RDS_USERNAME: ${{ secrets.RDS_USERNAME }}
-          RDS_PASSWORD: ${{ secrets.RDS_PASSWORD }}
-
-      ###############################################
 
       - name: Build with Gradle
-        working-directory: ./hero-be  #추가
-        # 테스트코드는 활용이기에 제외
+        working-directory: ./hero-be
+        env:
+          DB_URL: jdbc:mariadb://${{ secrets.RDS_HOSTNAME }}:${{ secrets.RDS_PORT }}/${{ secrets.RDS_DB_NAME }}
+          DB_USERNAME: ${{ secrets.RDS_USERNAME }}
+          DB_PASSWORD: ${{ secrets.RDS_PASSWORD }}
+          MAIL_ID: ${{ secrets.MAIL_ID }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          AES_SECRET: ${{ secrets.AES_SECRET }}
+          TOKEN_EXPIRATION_TIME: ${{ secrets.TOKEN_EXPIRATION_TIME }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          ACCESS_EXPIRATION_TIME: ${{ secrets.ACCESS_EXPIRATION_TIME }}
+          REFRESH_EXPIRATION_TIME: ${{ secrets.REFRESH_EXPIRATION_TIME }}
+          GOOGLE_CALENDAR_CREDENTIALS_PATH: ${{ secrets.GOOGLE_CALENDAR_CREDENTIALS_PATH }}
+          GOOGLE_CALENDAR_ID: ${{ secrets.GOOGLE_CALENDAR_ID }}
+          GOOGLE_CALENDAR_TIMEZONE: ${{ secrets.GOOGLE_CALENDAR_TIMEZONE }}
+          GOOGLE_CALENDAR_APPLICATION_NAME: ${{ secrets.GOOGLE_CALENDAR_APPLICATION_NAME }}
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
         run: ./gradlew clean build -x test
         shell: bash
 
@@ -102,9 +60,8 @@ jobs:
         run: echo "CurrentTime=${{steps.current-time.outputs.formattedTime}}"
         shell: bash
 
-      ###############################################
       - name: Generate deployment package
-        working-directory: ./hero-be # 추가
+        working-directory: ./hero-be
         run: |
           mkdir -p deploy
           cp build/libs/*.jar deploy/application.jar
@@ -122,8 +79,7 @@ jobs:
           environment_name: hero-hrsystem-env
           version_label: github-action-${{steps.current-time.outputs.formattedTime}}
           region: ap-northeast-2
-          deployment_package: hero-be/deploy/deploy.zip  # 경로 수정
+          deployment_package: hero-be/deploy/deploy.zip
           use_existing_version_if_available: false
           wait_for_deployment: true
           wait_for_environment_recovery: 300
-  ###############################################
