@@ -86,7 +86,8 @@ jobs:
       ###############################################
 
       - name: Build with Gradle
-        # 테스트코드는 Mock객체 활용이기에 제외
+        working-directory: ./hero-be  #추가
+        # 테스트코드는 활용이기에 제외
         run: ./gradlew clean build -x test
         shell: bash
 
