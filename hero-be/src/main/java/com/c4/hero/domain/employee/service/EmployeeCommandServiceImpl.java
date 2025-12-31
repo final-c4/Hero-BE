@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -139,7 +140,7 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
                 .grade(grade)
                 .jobTitle(jobTitle)
                 .status(EmployeeStatus.ACTIVE)
-                .evaluationPoint(0) // 초기값 0으로 설정
+                .evaluationPoint(BigDecimal.valueOf(0)) // 초기값 0으로 설정
                 .build();
 
         Employee savedEmployee = employeeRepository.save(employee);
@@ -171,7 +172,7 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         addDepartmentHistory(savedEmployee, ChangeType.CREATE, employeeDepartment.getDepartmentName());
 
         // 7. 직급 이력 저장
-        addGradeHistory(savedEmployee, ChangeType.CREATE, employeeDepartment.getDepartmentName());
+        addGradeHistory(savedEmployee, ChangeType.CREATE, grade.getGrade());
 
         // 8. 이메일 발송 로직 (tempPassword 발송)
         sendTemporaryPasswordEmail(request.getEmail(), accountId, tempPassword);

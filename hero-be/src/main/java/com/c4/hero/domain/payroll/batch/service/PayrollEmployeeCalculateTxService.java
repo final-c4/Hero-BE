@@ -61,7 +61,7 @@ public class PayrollEmployeeCalculateTxService {
             Payroll payroll = payrollRepository
                     .findByEmployeeIdAndSalaryMonth(empId, batch.getSalaryMonth()) //기존 급여가 있으면 조회
                     .orElseGet(() -> Payroll.ready(empId, batch.getBatchId(), batch.getSalaryMonth()));
-                    //없으면 ready상태 엔티티 생성
+            //없으면 ready상태 엔티티 생성
 
             if (payroll.isLocked()) return; // 상태 검증용 (true상태면 계산 스킵)
 
