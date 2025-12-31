@@ -1,17 +1,26 @@
 package com.c4.hero.domain.vacation.service;
 
 import com.c4.hero.common.response.PageResponse;
+import com.c4.hero.domain.employee.entity.Employee;
 import com.c4.hero.domain.employee.repository.EmployeeRepository;
 import com.c4.hero.domain.vacation.dto.DepartmentVacationDTO;
 import com.c4.hero.domain.vacation.dto.VacationHistoryDTO;
 import com.c4.hero.domain.vacation.dto.VacationSummaryDTO;
+import com.c4.hero.domain.vacation.entity.VacationLog;
+import com.c4.hero.domain.vacation.entity.VacationType;
 import com.c4.hero.domain.vacation.repository.DepartmentVacationRepository;
 import com.c4.hero.domain.vacation.repository.VacationRepository;
 import com.c4.hero.domain.vacation.repository.VacationSummaryRepository;
+import com.c4.hero.domain.vacation.repository.VacationTypeRepository;
+import com.c4.hero.domain.vacation.type.VacationStatus;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDate;
 import java.util.List;
@@ -38,6 +47,8 @@ public class VacationService {
     private final DepartmentVacationRepository departmentVacationRepository;
     private final VacationSummaryRepository vacationSummaryRepository;
     private final EmployeeRepository employeeRepository;
+    private final VacationTypeRepository vacationTypeRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     /**
      * 직원 휴가 이력을 페이지 단위로 조회합니다.
@@ -107,5 +118,55 @@ public class VacationService {
      */
     public VacationSummaryDTO findVacationLeaves(Integer employeeId) {
         return vacationSummaryRepository.findSummaryByEmployeeId(employeeId);
+    }
+
+    /**
+     * 결재 완료된 휴가 신청서(details JSON)를 기반으로 VacationLog를 생성합니다.
+     *
+     * @param employeeId  휴가 신청자(기안자) employeeId
+     * @param detailsJson ApprovalDocument.details에 저장된 JSON 문자열
+     */
+    @Transactional
+    public void createVacationLogFromApproval(Integer employeeId, String detailsJson) {
+        try {
+            JsonNode root = objectMapper.readTree(detailsJson);
+            int vacationTypeId = root.path("vacationType").asInt(0);
+            String startDateStr = root.path("startDate").asText(null);
+            String endDateStr = root.path("endDate").asText(null);
+            String reason = root.path("reason").asText("");
+
+            if (vacationTypeId <= 0 || startDateStr == null || endDateStr == null) {
+                throw new IllegalArgumentException(
+                        "휴가 신청 details에 필수 값(vacationType/startDate/endDate)이 누락되었습니다. details=" + detailsJson
+                );
+            }
+
+            LocalDate startDate = LocalDate.parse(startDateStr);
+            LocalDate endDate = LocalDate.parse(endDateStr);
+
+            Employee employee = employeeRepository.findById(employeeId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 직원입니다. employeeId=" + employeeId));
+
+            VacationType vacationType = vacationTypeRepository.findById(vacationTypeId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 휴가 유형입니다. vacationTypeId=" + vacationTypeId));
+
+            VacationLog log = VacationLog.create(
+                    employee,
+                    vacationType,
+                    startDate,
+                    endDate,
+                    reason,
+                    VacationStatus.APPROVED
+            );
+
+            vacationRepository.save(log);
+
+            log.info("[VacationService] VacationLog saved. employeeId={}, typeId={}, start={}, end={}",
+                    employeeId, vacationTypeId, startDate, endDate);
+
+        } catch (Exception e) {
+            // 상위 리스너에서 잡아서 로그 찍도록 예외 그대로 던지기
+            throw new IllegalStateException("휴가 신청 details 처리 중 오류 발생. details=" + detailsJson, e);
+        }
     }
 }

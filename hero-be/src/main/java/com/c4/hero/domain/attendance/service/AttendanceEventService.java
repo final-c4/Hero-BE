@@ -1,14 +1,11 @@
 package com.c4.hero.domain.attendance.service;
 
-import com.c4.hero.domain.attendance.dto.ChangeLogDTO;
 import com.c4.hero.domain.attendance.dto.PersonalDTO;
 import com.c4.hero.domain.attendance.mapper.AttendanceMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
