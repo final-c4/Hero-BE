@@ -211,6 +211,36 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
 
         employeeGradeHistoryRepository.save(newHistory);
     }
+
+    @Override
+    public void updateDepartment(String employeeNumber, String departmentName) {
+        Employee employee = employeeRepository.findByEmployeeNumber(employeeNumber)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EMPLOYEE_NOT_FOUND));
+
+        EmployeeDepartment newDepartment = departmentRepository.findByDepartmentName(departmentName)
+                .orElseThrow(() -> new BusinessException(ErrorCode.DEPARTMENT_NOT_FOUND));
+
+        // 부서 변경
+        employee.changeDepartment(newDepartment);
+
+        // 이력 저장
+        addDepartmentHistory(employee, ChangeType.TRANSFER, departmentName);
+    }
+
+    @Override
+    public void updateJobTitle(String employeeNumber, String jobTitleName) {
+        Employee employee = employeeRepository.findByEmployeeNumber(employeeNumber)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EMPLOYEE_NOT_FOUND));
+
+        JobTitle newJobTitle = jobTitleRepository.findByJobTitle(jobTitleName)
+                .orElseThrow(() -> new BusinessException(ErrorCode.JOB_TITLE_NOT_FOUND));
+
+        // 직책 변경
+        employee.changeJobTitle(newJobTitle);
+        
+        // 직책 변경 이력은 현재 별도 테이블이 없으므로 생략하거나 필요 시 추가
+    }
+
     /* =================== private =================== */
 
     /**

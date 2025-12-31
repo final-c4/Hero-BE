@@ -189,7 +189,13 @@ public class Employee {
         this.jobTitle = newJobTitle;
     }
 
+    public void changeStatus(EmployeeStatus newStatus) {
+        this.status = newStatus;
+    }
 
+    public void updateTerminationDate(LocalDate terminationDate) {
+        this.terminationDate = terminationDate;
+    }
 
     @Builder
     public Employee(EmployeeDepartment employeeDepartment, String employeeNumber, String employeeName,
