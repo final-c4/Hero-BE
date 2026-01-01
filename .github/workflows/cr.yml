@@ -9,7 +9,7 @@ on:
     types: [opened, reopened, synchronize]
   push:
     branches:
-       - "deploy/aws-eb"
+       - "main"
 
 jobs:
   deploy-java-17:
