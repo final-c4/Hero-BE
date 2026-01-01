@@ -4,6 +4,8 @@ server:
 
 ## spring
 spring:
+  config:
+    import: optional:classpath:application-secret.yml
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://${RDS_HOSTNAME}:${RDS_PORT}/${RDS_DB_NAME}
@@ -48,14 +50,6 @@ token:
   access-expiration-time: ${ACCESS_EXPIRATION_TIME}
   refresh-expiration-time: ${REFRESH_EXPIRATION_TIME}
 
-## google Calendar
-google:
-  calendar:
-    credentials-path: ${GOOGLE_CALENDAR_CREDENTIALS_PATH}
-    id: ${GOOGLE_CALENDAR_ID}
-    timezone: Asia/Seoul
-    application-name: HERO
-
 ## s3
 cloud:
   aws:
@@ -68,9 +62,6 @@ cloud:
       static: ap-northeast-2
     stack:
       auto: false
-
-
-
 
 
 
