@@ -156,7 +156,10 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // 허용할 Origin (프론트엔드 주소)
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedOrigins(Arrays.asList(
+                "https://hero-hr.site",
+                "http://localhost:8080" // 개발환경
+        ));
 
         // 허용할 HTTP 메서드
         configuration.setAllowedMethods(Arrays.asList(
