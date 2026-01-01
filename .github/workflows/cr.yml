@@ -7,8 +7,6 @@ permissions:
 on:
   pull_request:
     types: [ opened, reopened, synchronize ]
-    branches:
-      - "deploy/aws-rds"  # 어떤 브랜치에서든 main 브랜치를 대상으로 PR을 올릴 때 실행
 
 
 jobs:
