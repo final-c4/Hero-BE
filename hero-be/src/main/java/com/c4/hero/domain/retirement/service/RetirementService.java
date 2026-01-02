@@ -16,7 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.IsoFields;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -68,41 +70,78 @@ public class RetirementService {
      */
     @Transactional(readOnly = true)
     public RetirementSummaryDTO getRetirementSummary() {
-        List<Employee> allEmployees = employeeRepository.findAll();
-        long totalEmployees = allEmployees.size();
+        // 관리자(부서 ID 0) 제외하고 조회
+        List<Employee> allEmployees = employeeRepository.findAll().stream()
+                .filter(e -> e.getEmployeeDepartment() != null && e.getEmployeeDepartment().getDepartmentId() != 0)
+                .collect(Collectors.toList());
+                
+        LocalDate today = LocalDate.now();
         
-        // 현재 재직 중인 직원 (휴직 포함)
-        long retainedEmployees = allEmployees.stream()
+        // 1. 잔존률 (Retention Rate): 최근 3년 (오늘로부터 정확히 3년 전 ~ 현재)
+        LocalDate periodStart = today.minusYears(3);
+
+        // 기간 초 직원 수: 3년 전 시점에 재직 중이었던 직원
+        List<Employee> employeesAtStart = allEmployees.stream()
+                .filter(e -> !e.getHireDate().isAfter(periodStart) &&
+                        (e.getTerminationDate() == null || e.getTerminationDate().isAfter(periodStart)))
+                .collect(Collectors.toList());
+        long countAtStart = employeesAtStart.size();
+
+        // 기간 말 잔존 직원 수: 기간 초 직원 중에서 현재도 퇴사하지 않은 직원
+        long retainedAtEnd = employeesAtStart.stream()
                 .filter(e -> e.getStatus() != EmployeeStatus.RETIRED)
                 .count();
-                
-        long retiredEmployees = allEmployees.stream()
-                .filter(e -> e.getStatus() == EmployeeStatus.RETIRED)
-                .count();
 
-        // 잔존률 (전체 직원 중 재직 중인 직원 비율)
-        double retentionRate = totalEmployees > 0 ? (double) retainedEmployees / totalEmployees * 100 : 0;
+        double retentionRate = countAtStart > 0 ? (double) retainedAtEnd / countAtStart * 100 : 0;
 
-        // 정착률 (3년 이상 재직 중인 비율 / 현재 재직 인원 기준)
-        long settledEmployees = allEmployees.stream()
-                .filter(e -> e.getStatus() != EmployeeStatus.RETIRED &&
-                        ChronoUnit.YEARS.between(e.getHireDate(), LocalDate.now()) >= 3)
-                .count();
-        double settlementRate = retainedEmployees > 0 ? (double) settledEmployees / retainedEmployees * 100 : 0;
-
-        // 종합 이직률 (전체 퇴사자 / 전체 직원 수)
-        double totalTurnoverRate = totalEmployees > 0 ? (double) retiredEmployees / totalEmployees * 100 : 0;
-
-        // 신입 1년 내 이직률
-        LocalDate oneYearAgo = LocalDate.now().minusYears(1);
-        List<Employee> newHires = allEmployees.stream()
-                .filter(e -> e.getHireDate().isAfter(oneYearAgo))
+        // 2. 정착률 (Settlement Rate): 최근 1년 입사자 중 3개월 이상 근무(또는 재직)한 비율
+        LocalDate oneYearAgo = today.minusYears(1);
+        List<Employee> newHiresInLastYear = allEmployees.stream()
+                .filter(e -> !e.getHireDate().isBefore(oneYearAgo)) // 1년 전 날짜 포함 (>=)
                 .collect(Collectors.toList());
-        long newHiresCount = newHires.size();
-        long newHiresRetiredCount = newHires.stream()
-                .filter(e -> e.getStatus() == EmployeeStatus.RETIRED)
+
+        long newHiresCount = newHiresInLastYear.size();
+
+        long settledNewHiresCount = newHiresInLastYear.stream()
+                .filter(e -> {
+                    if (e.getStatus() != EmployeeStatus.RETIRED) {
+                        return true; // 현재 재직 중이면 정착으로 간주
+                    }
+                    // 퇴사한 경우, 근속 기간이 3개월 이상이면 정착으로 간주
+                    LocalDate endDate = e.getTerminationDate() != null ? e.getTerminationDate() : today;
+                    long daysWorked = ChronoUnit.DAYS.between(e.getHireDate(), endDate);
+                    return daysWorked >= 90;
+                })
                 .count();
-        double newHireTurnoverRate = newHiresCount > 0 ? (double) newHiresRetiredCount / newHiresCount * 100 : 0;
+
+        double settlementRate = newHiresCount > 0 ? (double) settledNewHiresCount / newHiresCount * 100 : 0;
+
+        // 3. 종합 이직률 (Total Turnover Rate): 최근 1년 간 퇴사율 (퇴사자 / 1년 전 재직 인원)
+        long employeesOneYearAgo = allEmployees.stream()
+                .filter(e -> !e.getHireDate().isAfter(oneYearAgo) &&
+                        (e.getTerminationDate() == null || e.getTerminationDate().isAfter(oneYearAgo)))
+                .count();
+        
+        long retiredInLastYear = allEmployees.stream()
+                .filter(e -> e.getTerminationDate() != null && e.getTerminationDate().isAfter(oneYearAgo))
+                .count();
+                
+        double totalTurnoverRate = employeesOneYearAgo > 0 ? (double) retiredInLastYear / employeesOneYearAgo * 100 : 0;
+
+        // 4. 신입 1년 내 이직률 (New Hire Turnover Rate): 최근 1년 입사자 중 퇴사자 비율
+        // (조기 이탈률: 3개월 미만 근무 후 퇴사자 비율로 수정)
+        long earlyLeaverCount = newHiresInLastYear.stream()
+                .filter(e -> {
+                    if (e.getStatus() != EmployeeStatus.RETIRED) {
+                        return false;
+                    }
+                    LocalDate endDate = e.getTerminationDate() != null ? e.getTerminationDate() : today;
+                    long daysWorked = ChronoUnit.DAYS.between(e.getHireDate(), endDate);
+                    return daysWorked < 90;
+                })
+                .count();
+        
+        double newHireTurnoverRate = newHiresCount > 0 ? (double) earlyLeaverCount / newHiresCount * 100 : 0;
 
         return RetirementSummaryDTO.builder()
                 .retentionRate(Math.round(retentionRate * 100.0) / 100.0)
@@ -120,7 +159,9 @@ public class RetirementService {
     @Transactional(readOnly = true)
     public List<ExitReasonStatDTO> getExitReasonStats() {
         List<Retirement> retirements = retirementRepository.findAll();
+        // 관리자 제외 (Retirement -> Employee -> Department 확인)
         Map<String, Long> reasonCounts = retirements.stream()
+                .filter(r -> r.getEmployee().getEmployeeDepartment() != null && r.getEmployee().getEmployeeDepartment().getDepartmentId() != 0)
                 .collect(Collectors.groupingBy(r -> r.getExitReason().getReasonName(), Collectors.counting()));
 
         return reasonCounts.entrySet().stream()
@@ -139,24 +180,45 @@ public class RetirementService {
      */
     @Transactional(readOnly = true)
     public List<TenureRetentionDTO> getTenureRetentionStats() {
-        List<Employee> allEmployees = employeeRepository.findAll();
-        long totalEmployees = allEmployees.size();
-        if (totalEmployees == 0) return new ArrayList<>();
-
-        List<Long> tenures = allEmployees.stream()
-                .map(e -> {
-                    LocalDate endDate = (e.getStatus() == EmployeeStatus.RETIRED && e.getTerminationDate() != null)
-                            ? e.getTerminationDate()
-                            : LocalDate.now();
-                    return ChronoUnit.YEARS.between(e.getHireDate(), endDate);
-                })
+        // 관리자 제외
+        List<Employee> allEmployees = employeeRepository.findAll().stream()
+                .filter(e -> e.getEmployeeDepartment() != null && e.getEmployeeDepartment().getDepartmentId() != 0)
                 .collect(Collectors.toList());
-
+                
         List<TenureRetentionDTO> stats = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+
         for (int i = 0; i <= 10; i++) {
             long year = i;
-            long count = tenures.stream().filter(t -> t >= year).count();
-            double rate = (double) count / totalEmployees * 100.0;
+            // 기준일: 오늘로부터 'year'년 전
+            LocalDate targetHireDate = today.minusYears(year);
+
+            // 분모: 최소 'year'년 전에 입사한 직원 수 (N년 이상 근무할 기회가 있었던 사람)
+            long eligibleEmployees = allEmployees.stream()
+                    .filter(e -> !e.getHireDate().isAfter(targetHireDate))
+                    .count();
+
+            if (eligibleEmployees == 0) {
+                stats.add(TenureRetentionDTO.builder()
+                        .tenureRange(year + "년 이상")
+                        .retentionRate(0.0)
+                        .build());
+                continue;
+            }
+
+            // 분자: 그들 중 실제 근속 기간이 'year'년 이상인 사람
+            long retainedEmployees = allEmployees.stream()
+                    .filter(e -> !e.getHireDate().isAfter(targetHireDate))
+                    .filter(e -> {
+                        LocalDate endDate = (e.getStatus() == EmployeeStatus.RETIRED && e.getTerminationDate() != null)
+                                ? e.getTerminationDate()
+                                : today;
+                        return ChronoUnit.YEARS.between(e.getHireDate(), endDate) >= year;
+                    })
+                    .count();
+
+            double rate = (double) retainedEmployees / eligibleEmployees * 100.0;
+
             stats.add(TenureRetentionDTO.builder()
                     .tenureRange(year + "년 이상")
                     .retentionRate(Math.round(rate * 100.0) / 100.0)
@@ -167,58 +229,83 @@ public class RetirementService {
     }
 
     /**
-     * 최근 4분기 동안의 신입 사원 정착률 및 이직률 통계를 계산합니다.
-     * 정착률은 수습 기간(3개월)을 기준으로 계산됩니다.
+     * 분기별 신입 사원 정착률 및 이직률 통계를 계산합니다.
+     * (데이터가 존재하는 모든 분기에 대해)
      *
      * @return 신입 정착률 및 이직률 DTO 리스트
      */
     @Transactional(readOnly = true)
     public List<NewHireStatDTO> getNewHireStats() {
+        // 관리자 제외
+        List<Employee> allEmployees = employeeRepository.findAll().stream()
+                .filter(e -> e.getEmployeeDepartment() != null && e.getEmployeeDepartment().getDepartmentId() != 0)
+                .collect(Collectors.toList());
+                
+        LocalDate today = LocalDate.now();
+
+        // 1. 입사일 기준으로 분기별 그룹화
+        Map<String, List<Employee>> employeesByQuarter = allEmployees.stream()
+                .collect(Collectors.groupingBy(e -> {
+                    int year = e.getHireDate().getYear();
+                    int quarter = e.getHireDate().get(IsoFields.QUARTER_OF_YEAR);
+                    return year + "년 " + quarter + "분기";
+                }));
+
         List<NewHireStatDTO> stats = new ArrayList<>();
-        List<Employee> allEmployees = employeeRepository.findAll();
-        LocalDate now = LocalDate.now();
 
-        int currentMonth = now.getMonthValue();
-        int currentQ = (currentMonth - 1) / 3 + 1;
-        LocalDate currentQStart = LocalDate.of(now.getYear(), (currentQ - 1) * 3 + 1, 1);
-
-        for (int i = 3; i >= 0; i--) {
-            LocalDate qStart = currentQStart.minusMonths(i * 3);
-            LocalDate qEnd = qStart.plusMonths(3).minusDays(1);
-
-            int qVal = (qStart.getMonthValue() - 1) / 3 + 1;
-            String label = qStart.getYear() + "년 " + qVal + "분기";
-
-            List<Employee> hiredInQuarter = allEmployees.stream()
-                    .filter(e -> !e.getHireDate().isBefore(qStart) && !e.getHireDate().isAfter(qEnd))
-                    .collect(Collectors.toList());
-
+        // 2. 각 분기별로 통계 계산
+        for (Map.Entry<String, List<Employee>> entry : employeesByQuarter.entrySet()) {
+            String quarterLabel = entry.getKey();
+            List<Employee> hiredInQuarter = entry.getValue();
             long total = hiredInQuarter.size();
-            
-            // 정착률 계산: (재직 중 + 3개월 이상 근무 후 퇴사) / 전체 입사자
-            // 재직 중인 직원은 아직 수습 기간 내 이탈하지 않았으므로 정착(과정)으로 간주합니다.
-            // 퇴사자의 경우 3개월(90일) 이상 근무했는지를 기준으로 정착 여부를 판단합니다.
-            long settledCount = hiredInQuarter.stream()
-                    .filter(e -> {
-                        if (e.getStatus() != EmployeeStatus.RETIRED) {
-                            return true; 
-                        }
-                        LocalDate endDate = e.getTerminationDate() != null ? e.getTerminationDate() : LocalDate.now();
-                        return ChronoUnit.DAYS.between(e.getHireDate(), endDate) >= 90;
-                    })
-                    .count();
 
-            long retired = hiredInQuarter.stream().filter(e -> e.getStatus() == EmployeeStatus.RETIRED).count();
-            
+            long settledCount = 0;
+            long earlyLeaverCount = 0;
+
+            for (Employee employee : hiredInQuarter) {
+                // 정착률 계산: (재직 중 + 3개월 이상 근무 후 퇴사)
+                boolean isSettled = false;
+                if (employee.getStatus() != EmployeeStatus.RETIRED) {
+                    isSettled = true; // 현재 재직 중이면 정착
+                } else {
+                    LocalDate endDate = employee.getTerminationDate() != null ? employee.getTerminationDate() : today;
+                    long daysWorked = ChronoUnit.DAYS.between(employee.getHireDate(), endDate);
+                    if (daysWorked >= 90) {
+                        isSettled = true; // 3개월 이상 근무 후 퇴사면 정착
+                    }
+                }
+
+                if (isSettled) {
+                    settledCount++;
+                }
+
+                // 신입 이직률 계산: 3개월 미만 근무 후 퇴사한 사람 (조기 이탈자)
+                boolean isEarlyLeaver = false;
+                if (employee.getStatus() == EmployeeStatus.RETIRED) {
+                    LocalDate endDate = employee.getTerminationDate() != null ? employee.getTerminationDate() : today;
+                    long daysWorked = ChronoUnit.DAYS.between(employee.getHireDate(), endDate);
+                    if (daysWorked < 90) {
+                        isEarlyLeaver = true;
+                    }
+                }
+
+                if (isEarlyLeaver) {
+                    earlyLeaverCount++;
+                }
+            }
+
             double settlementRate = total > 0 ? (double) settledCount / total * 100 : 0;
-            double turnoverRate = total > 0 ? (double) retired / total * 100 : 0;
+            double turnoverRate = total > 0 ? (double) earlyLeaverCount / total * 100 : 0;
 
             stats.add(NewHireStatDTO.builder()
-                    .quarter(label)
+                    .quarter(quarterLabel)
                     .settlementRate(Math.round(settlementRate * 100.0) / 100.0)
                     .turnoverRate(Math.round(turnoverRate * 100.0) / 100.0)
                     .build());
         }
+
+        // 3. 최신 분기 순으로 정렬
+        stats.sort(Comparator.comparing(NewHireStatDTO::getQuarter).reversed());
 
         return stats;
     }
@@ -234,6 +321,8 @@ public class RetirementService {
 
         Map<String, List<Employee>> employeesByDept = allEmployees.stream()
                 .filter(e -> e.getEmployeeDepartment() != null)
+                // 관리자 부서(0)만 제외 (대기 발령 부서(-1)는 포함)
+                .filter(e -> e.getEmployeeDepartment().getDepartmentId() != 0)
                 .collect(Collectors.groupingBy(e -> e.getEmployeeDepartment().getDepartmentName()));
 
         return employeesByDept.entrySet().stream()
@@ -252,6 +341,7 @@ public class RetirementService {
                             .turnoverRate(Math.round(turnoverRate * 100.0) / 100.0)
                             .build();
                 })
+                .sorted(Comparator.comparing(DepartmentTurnoverDTO::getTurnoverRate).reversed()) // 이직률 내림차순 정렬
                 .collect(Collectors.toList());
     }
 
@@ -261,22 +351,22 @@ public class RetirementService {
      *
      * @param employeeNumber 사번
      * @param terminationDate 퇴사일
-     * @param terminationReason 퇴사 사유 (예: "개인 사정")
+     * @param terminationReasonId 퇴사 사유 ID
      * @param terminationReasonDetail 상세 사유
      */
     @Transactional
-    public void processRetirementApproval(String employeeNumber, LocalDate terminationDate, String terminationReason, String terminationReasonDetail) {
+    public void processRetirementApproval(String employeeNumber, LocalDate terminationDate, Integer terminationReasonId, String terminationReasonDetail) {
         // 1. 직원 조회
         Employee employee = employeeRepository.findByEmployeeNumber(employeeNumber)
                 .orElseThrow(() -> new BusinessException(ErrorCode.EMPLOYEE_NOT_FOUND));
 
         // 2. 퇴사 사유 조회
-        ExitReasonMaster exitReason = exitReasonMasterRepository.findByReasonName(terminationReason)
+        ExitReasonMaster exitReason = exitReasonMasterRepository.findById(terminationReasonId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_INPUT_VALUE)); // 적절한 에러 코드로 변경 필요
 
-        // 3. 직원 정보 업데이트 (퇴사일 설정)
+        // 3. 직원 정보 업데이트 (퇴사일, 보관 만료일 설정)
         employee.updateTerminationDate(terminationDate);
-        // 주의: 상태(RETIRED)는 스케줄러가 퇴사일이 지난 후 변경함.
+        employee.updateRetentionExpireAt(terminationDate.plusYears(5));
 
         // 4. 근속 일수 계산
         long workingDays = ChronoUnit.DAYS.between(employee.getHireDate(), terminationDate);
@@ -291,5 +381,29 @@ public class RetirementService {
                 .build();
 
         retirementRepository.save(retirement);
+    }
+
+    /**
+     * 관리자가 직원을 강제로 퇴직 처리합니다.
+     *
+     * @param employeeId 대상 직원 ID
+     * @param request 퇴직 정보
+     */
+    @Transactional
+    public void forceTerminateEmployee(Integer employeeId, ForceRetirementRequestDTO request) {
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EMPLOYEE_NOT_FOUND));
+
+        // 이미 퇴사 처리된 직원은 중복 처리 방지
+        if (employee.getStatus() == EmployeeStatus.RETIRED) {
+            throw new BusinessException(ErrorCode.ALREADY_RETIRED);
+        }
+
+        processRetirementApproval(
+                employee.getEmployeeNumber(),
+                request.getTerminationDate(),
+                request.getTerminationReasonId(),
+                request.getTerminationReasonDetail()
+        );
     }
 }

@@ -1,6 +1,10 @@
 package com.c4.hero.domain.retirement.scheduler;
 
+import com.c4.hero.domain.employee.entity.Account;
 import com.c4.hero.domain.employee.entity.Employee;
+import com.c4.hero.domain.employee.entity.EmployeeDepartment;
+import com.c4.hero.domain.employee.repository.EmployeeAccountRepository;
+import com.c4.hero.domain.employee.repository.EmployeeDepartmentRepository;
 import com.c4.hero.domain.employee.repository.EmployeeRepository;
 import com.c4.hero.domain.employee.type.EmployeeStatus;
 import lombok.RequiredArgsConstructor;
@@ -30,29 +34,46 @@ import java.util.List;
 public class RetirementScheduler {
 
     private final EmployeeRepository employeeRepository;
+    private final EmployeeAccountRepository accountRepository;
+    private final EmployeeDepartmentRepository departmentRepository;
 
     /**
-     * 매일 자정(00:00:00)에 실행되어 퇴사일이 지난 직원의 상태를 퇴직(RETIRED)으로 변경합니다.
-     * 퇴사일(terminationDate)이 어제 날짜인 직원을 찾아 상태를 업데이트합니다.
-     * 예: 퇴사일이 2024-01-01이면, 2024-01-02 00:00에 상태가 변경됩니다.
+     * 매일 자정(00:00:00)에 실행되어 퇴사일이 지난 직원의 상태를 퇴직(RETIRED)으로 변경하고,
+     * 관련 계정을 비활성화(DISABLED)하며, 부서장 및 권한 정보를 해제합니다.
      */
     @Scheduled(cron = "0 0 0 * * *")
+//    @Scheduled(fixedDelay = 10000)
     @Transactional
-    public void updateRetiredStatus() {
-        log.info("Starting retirement status update scheduler...");
+    public void processRetirements() {
+        log.info("Starting retirement processing scheduler...");
 
-        // 퇴사일이 어제 이전(포함)이면서 상태가 RETIRED가 아닌 직원 조회
-        // 즉, 퇴사일이 지났는데 아직 상태가 변경되지 않은 직원들을 일괄 처리
+        // 퇴사일이 오늘 또는 과거이면서, 아직 상태가 '재직' 또는 '휴직'인 직원 조회
         List<Employee> employeesToRetire = employeeRepository.findAllByTerminationDateBeforeAndStatusNot(
-                LocalDate.now(), EmployeeStatus.RETIRED
+                LocalDate.now().plusDays(1), // 오늘 날짜까지 포함
+                EmployeeStatus.RETIRED
         );
 
-        int count = 0;
+        int employeeCount = 0;
         for (Employee employee : employeesToRetire) {
+            // 1. 직원 상태 변경
             employee.changeStatus(EmployeeStatus.RETIRED);
-            count++;
+            employeeCount++;
+
+            // 2. 부서장 해제 처리
+            List<EmployeeDepartment> managingDepartments = departmentRepository.findByManagerId(employee.getEmployeeId());
+            for (EmployeeDepartment dept : managingDepartments) {
+                dept.removeManager();
+            }
+
+            // 3. 계정 비활성화 및 권한 제거
+            accountRepository.findByEmployee(employee).ifPresent(account -> {
+                if (account.getAccountStatus() != com.c4.hero.domain.employee.type.AccountStatus.DISABLED) {
+                    account.disable();
+                    account.clearRoles(); // 모든 권한 제거
+                }
+            });
         }
         
-        log.info("Completed retirement status update. Processed {} employees.", count);
+        log.info("Completed retirement processing. Processed {} employees.", employeeCount);
     }
 }

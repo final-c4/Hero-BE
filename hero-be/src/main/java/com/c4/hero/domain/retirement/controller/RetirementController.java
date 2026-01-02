@@ -5,9 +5,14 @@ import com.c4.hero.domain.retirement.dto.*;
 import com.c4.hero.domain.retirement.service.RetirementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -72,7 +77,7 @@ public class RetirementController {
      * @return 근속 기간별 잔존율 리스트
      */
     @GetMapping("/stats/tenure")
-    @Operation(summary = "근속 기간별 잔존율 조회", description = "근속 기간별 잔존율 데이터를 조회합니다. (선형 그래프용)")
+    @Operation(summary = "근속 기간별 잔존율 조회", description = "근속 기간별 잔존율 데이터를 조회합니다. n년 전 입사자 중에 현재 까지 남아 있는 사람의 %")
     public ResponseEntity<CustomResponse<List<TenureRetentionDTO>>> getTenureRetentionStats() {
         return ResponseEntity.ok(CustomResponse.success(retirementService.getTenureRetentionStats()));
     }
@@ -97,5 +102,22 @@ public class RetirementController {
     @Operation(summary = "부서별 이직률 조회", description = "부서별 현재 인원, 퇴사 인원, 이직률을 조회합니다. (리스트용)")
     public ResponseEntity<CustomResponse<List<DepartmentTurnoverDTO>>> getDepartmentTurnoverStats() {
         return ResponseEntity.ok(CustomResponse.success(retirementService.getDepartmentTurnoverStats()));
+    }
+
+    /**
+     * 관리자가 직원을 강제로 퇴직 처리합니다. (해고, 사망 등)
+     *
+     * @param employeeId 대상 직원 ID
+     * @param request 퇴직 정보
+     * @return 성공 응답
+     */
+    @PostMapping("/terminate/{employeeId}")
+//    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "관리자 강제 퇴직 처리", description = "관리자가 직원을 즉시 퇴직 처리합니다. (해고, 사망 등)")
+    public ResponseEntity<CustomResponse<Void>> forceTerminateEmployee(
+            @PathVariable Integer employeeId,
+            @Valid @RequestBody ForceRetirementRequestDTO request) {
+        retirementService.forceTerminateEmployee(employeeId, request);
+        return ResponseEntity.ok(CustomResponse.success());
     }
 }

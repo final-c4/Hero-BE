@@ -54,13 +54,18 @@ public class RetirementEventListener {
             
             String employeeNumber = (String) details.get("employeeNumber");
             String dateStr = (String) details.get("terminationDate");
-            String terminationReason = (String) details.get("terminationReason");
-            String terminationReasonDetail = (String) details.get("terminationReasonDetail");
+            Integer terminationReason = (Integer) details.get("terminateReason");
+            String terminationReasonDetail = (String) details.get("terminateReasonDetail");
 
-            // 날짜 변환 (yyyy-MM-dd 형식 가정)
+            if (employeeNumber == null || dateStr == null || terminationReason == null) {
+                log.error("❌ 퇴사 처리 실패 - 필수 정보 누락. docId: {}", event.getDocId());
+                return;
+            }
+
             LocalDate terminationDate = LocalDate.parse(dateStr);
 
             // 2. 퇴사 승인 처리 서비스 호출
+            // 퇴사일이 미래라도 terminationDate를 미리 설정해두면 Scheduler가 처리하므로 즉시 호출해도 됨.
             retirementService.processRetirementApproval(
                     employeeNumber,
                     terminationDate,
@@ -68,11 +73,10 @@ public class RetirementEventListener {
                     terminationReasonDetail
             );
 
-            log.info("✅ 퇴사 처리 완료 - 사번: {}, 퇴사일: {}", employeeNumber, terminationDate);
+            log.info("✅ 퇴사 처리 완료 (예정일 설정) - 사번: {}, 퇴사일: {}", employeeNumber, terminationDate);
 
         } catch (Exception e) {
             log.error("❌ 퇴사 결재 완료 처리 중 오류 발생 - docId: {}", event.getDocId(), e);
-            // 이벤트 처리는 비동기일 수 있으므로 예외를 다시 던져서 트랜잭션 롤백이나 재시도 처리가 되도록 함
             throw new RuntimeException("퇴사 결재 완료 처리 중 오류 발생", e);
         }
     }
