@@ -61,6 +61,11 @@ cloud:
     stack:
       auto: false
 
+## Python Server
+ai:
+  server:
+    base-url: ${PYTHON_SERVER_URL}
+
 
 
 
