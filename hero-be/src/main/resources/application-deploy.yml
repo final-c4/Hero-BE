@@ -4,8 +4,6 @@ server:
 
 ## spring
 spring:
-  config:
-    import: optional:classpath:application-secret.yml
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://${RDS_HOSTNAME}:${RDS_PORT}/${RDS_DB_NAME}
