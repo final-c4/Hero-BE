@@ -1,5 +1,6 @@
 package com.c4.hero.domain.payroll.analytics.service;
 
+import com.c4.hero.domain.auth.security.PayrollAdminOnly;
 import com.c4.hero.domain.payroll.analytics.dto.PayrollAnalyticsOrgResponse;
 import com.c4.hero.domain.payroll.analytics.mapper.PayrollAnalyticsOrgMapper;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +15,13 @@ import java.time.YearMonth;
  *
  * History
  *   2026/01/02 - 동근 최초 작성
+ *   2026/01/03 - 동근 권한 인가 정책 추가
  * </pre>
  *
  * @author 동근
- * @version 1.0
+ * @version 1.1
  */
+@PayrollAdminOnly
 @Service
 @RequiredArgsConstructor
 public class PayrollAnalyticsOrgServiceImpl implements PayrollAnalyticsOrgService {

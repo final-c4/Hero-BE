@@ -1,5 +1,6 @@
 package com.c4.hero.domain.payroll.analytics.controller;
 
+import com.c4.hero.domain.auth.security.PayrollAdminOnly;
 import com.c4.hero.domain.payroll.analytics.dto.PayrollAnalyticsCompositionResponse;
 import com.c4.hero.domain.payroll.analytics.dto.PayrollAnalyticsOrgResponse;
 import com.c4.hero.domain.payroll.analytics.dto.PayrollAnalyticsOverviewResponse;
@@ -25,15 +26,17 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * History
  *   2026/01/02 - 동근 최초 작성
+ *   2026/01/03 - 동근 권한 인가 정책 추가
  * </pre>
  *
  * @author 동근
- * @version 1.0
+ * @version 1.1
  */
 @Tag(
         name = "급여 분석(Analytics) API",
         description = "관리자(Admin) 급여 분석 대시보드용 요약/조직/구성 분석 API"
 )
+@PayrollAdminOnly
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/payroll/analytics")
