@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 )
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/payroll/admin/analytics")
+@RequestMapping("/api/admin/payroll/analytics")
 public class PayrollAnalyticsAdminController {
 
     private final PayrollAnalyticsService service;
