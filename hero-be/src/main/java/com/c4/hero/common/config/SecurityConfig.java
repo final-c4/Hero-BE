@@ -94,21 +94,21 @@ public class SecurityConfig {
 
                 // URL별 권한 설정
                 .authorizeHttpRequests(auth -> auth
-//                                .requestMatchers("/ws/**").permitAll()
+                                .requestMatchers("/ws/**").permitAll()
 //                                .requestMatchers("/api/notifications/**").permitAll()  // 알림 API 추가
 //                                .requestMatchers("/api/test/**").permitAll()  // 테스트 API
 //                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Preflight 요청은 모두 허용
 //                                .requestMatchers("/api/auth/**").permitAll()      // 인증 API는 모두 허용
 //                                .requestMatchers("/api/auth/test").hasRole("EMPLOYEE")
-//                                .anyRequest().permitAll()
+                                .anyRequest().permitAll()
 //                        .requestMatchers("/api/public/**").permitAll()    // 공개 API 허용
                         //급여 권한 인가 처리 할때 요부분부터 (주석 해제할때 해당 텍스트 제거)
-                        .requestMatchers("/api/admin/payroll/**")
-                        .hasAnyRole("SYSTEM_ADMIN", "HR_MANAGER", "HR_PAYROLL") //관리자만 접근가능
-                        .requestMatchers("/api/settings/payroll/**")
-                        .hasAnyRole("SYSTEM_ADMIN", "HR_MANAGER", "HR_PAYROLL") //관리자만 접근가능
-                       .requestMatchers("/api/me/payroll/**")
-                        .authenticated() //로그인해야 접근 가능
+//                        .requestMatchers("/api/admin/payroll/**")
+//                        .hasAnyRole("SYSTEM_ADMIN", "HR_MANAGER", "HR_PAYROLL") //관리자만 접근가능
+//                        .requestMatchers("/api/settings/payroll/**")
+//                        .hasAnyRole("SYSTEM_ADMIN", "HR_MANAGER", "HR_PAYROLL") //관리자만 접근가능
+//                       .requestMatchers("/api/me/payroll/**")
+//                        .authenticated() //로그인해야 접근 가능
                         // 급여 권한 인가 처리 할때 요기까지 (주석 해제할때 해당 텍스트 제거)
 //                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자만 접근
 //                        .anyRequest().authenticated()                      // 나머지는 인증 필요
