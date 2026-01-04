@@ -50,14 +50,13 @@ public interface AttendanceDashboardSummaryRepository extends JpaRepository<Empl
      * @param departmentId 조회 대상 부서 ID (null이면 전체 부서)
      * @return 조건에 해당하는 전체 직원 수
      */
-    @Query(
-            """
-            select count(e.employeeId)
-            from Employee e
-                join e.employeeDepartment d
-            where (:departmentId is null or d.departmentId = :departmentId)
-            """
-    )
+    @Query("""
+        select count(e.employeeId)
+        from Employee e
+            join e.employeeDepartment d
+        where e.status = 'A'
+          and (:departmentId is null or d.departmentId = :departmentId)
+    """)
     long countTotalEmployees(@Param("departmentId") Integer departmentId);
 
     /**
@@ -82,34 +81,35 @@ public interface AttendanceDashboardSummaryRepository extends JpaRepository<Empl
      * @param endDate      근태 점수 산정 종료일
      * @return 점수 95점 이상인 우수 직원 수
      */
-    @Query(
-            """
-            select count(e.employeeId)
-            from Employee e
-                join e.employeeDepartment d
-            where (:departmentId is null or d.departmentId = :departmentId)
-              and e.employeeId in (
-                  select e2.employeeId
-                  from Employee e2
-                      join e2.employeeDepartment d2
-                      left join Attendance a
-                          on a.employee = e2
-                         and a.workDate between :startDate and :endDate
-                  where (:departmentId is null or d2.departmentId = :departmentId)
-                  group by e2.employeeId
-                  having (
-                      100L
-                      - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L) * 1L
-                      - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
-                  ) >= 95L
-              )
-            """
-    )
+    @Query("""
+    select count(e.employeeId)
+    from Employee e
+        join e.employeeDepartment d
+    where e.status = 'A'
+      and (:departmentId is null or d.departmentId = :departmentId)
+      and e.employeeId in (
+          select e2.employeeId
+          from Employee e2
+              join e2.employeeDepartment d2
+              left join Attendance a
+                  on a.employee = e2
+                 and a.workDate between :startDate and :endDate
+          where e2.status = 'A'
+            and (:departmentId is null or d2.departmentId = :departmentId)
+          group by e2.employeeId
+          having (
+              100L
+              - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L) * 1L
+              - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
+          ) >= 95L
+      )
+    """)
     long countExcellentEmployees(
             @Param("departmentId") Integer departmentId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
 
     /**
      * 위험 직원 수(근태 점수 85점 이하)를 조회합니다.
@@ -122,32 +122,33 @@ public interface AttendanceDashboardSummaryRepository extends JpaRepository<Empl
      * @param endDate      근태 점수 산정 종료일
      * @return 점수 85점 이하인 위험 직원 수
      */
-    @Query(
-            """
-            select count(e.employeeId)
-            from Employee e
-                join e.employeeDepartment d
-            where (:departmentId is null or d.departmentId = :departmentId)
-              and e.employeeId in (
-                  select e2.employeeId
-                  from Employee e2
-                      join e2.employeeDepartment d2
-                      left join Attendance a
-                          on a.employee = e2
-                         and a.workDate between :startDate and :endDate
-                  where (:departmentId is null or d2.departmentId = :departmentId)
-                  group by e2.employeeId
-                  having (
-                      100L
-                      - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L) * 1L
-                      - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
-                  ) <= 85L
-              )
-            """
-    )
+    @Query("""
+    select count(e.employeeId)
+    from Employee e
+        join e.employeeDepartment d
+    where e.status = 'A'
+      and (:departmentId is null or d.departmentId = :departmentId)
+      and e.employeeId in (
+          select e2.employeeId
+          from Employee e2
+              join e2.employeeDepartment d2
+              left join Attendance a
+                  on a.employee = e2
+                 and a.workDate between :startDate and :endDate
+          where e2.status = 'A'
+            and (:departmentId is null or d2.departmentId = :departmentId)
+          group by e2.employeeId
+          having (
+              100L
+              - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L) * 1L
+              - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
+          ) <= 85L
+      )
+    """)
     long countRiskyEmployees(
             @Param("departmentId") Integer departmentId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
 }

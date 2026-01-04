@@ -69,7 +69,8 @@ public interface AttendanceDashboardRepository extends JpaRepository<Attendance,
             left join Attendance a
                 on a.employee = e
                and a.workDate between :startDate and :endDate
-        where (:departmentId is null or d.departmentId = :departmentId)
+        where e.status = 'A'
+          and (:departmentId is null or d.departmentId = :departmentId)
         group by
             e.employeeId,
             e.employeeNumber,
@@ -78,23 +79,24 @@ public interface AttendanceDashboardRepository extends JpaRepository<Attendance,
             d.departmentName
         order by
             case when :scoreSort = 'ASC' then (
-                    100L
-                      - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L)
-                      - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L  
-                    ) end asc,
-                    case when :scoreSort = 'DESC' then(
-                    100L
-                      - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L)
-                      - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L  
-                    ) end desc,
-                    e.employeeId asc
-                """,
+                100L
+                  - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L)
+                  - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
+            ) end asc,
+            case when :scoreSort = 'DESC' then (
+                100L
+                  - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L)
+                  - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
+            ) end desc,
+            e.employeeId asc
+        """,
             countQuery = """
-                select count(e.employeeId)
-                from Employee e
-                    join e.employeeDepartment d
-                where (:departmentId is null or d.departmentId = :departmentId)
-                """
+        select count(distinct e.employeeId)
+        from Employee e
+            join e.employeeDepartment d
+        where e.status = 'A'
+          and (:departmentId is null or d.departmentId = :departmentId)
+        """
     )
     Page<AttendanceDashboardDTO> findAttendanceDashboard(
             @Param("departmentId") Integer departmentId,
@@ -103,4 +105,5 @@ public interface AttendanceDashboardRepository extends JpaRepository<Attendance,
             @Param("scoreSort") String scoreSort,
             Pageable pageable
     );
+
 }
