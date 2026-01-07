@@ -44,8 +44,6 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           ACCESS_EXPIRATION_TIME: ${{ secrets.ACCESS_EXPIRATION_TIME }}
           REFRESH_EXPIRATION_TIME: ${{ secrets.REFRESH_EXPIRATION_TIME }}
-          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
           PYTHON_SERVER_URL: ${{secrets.PYTHON_SERVER_URL}}
         run: |
