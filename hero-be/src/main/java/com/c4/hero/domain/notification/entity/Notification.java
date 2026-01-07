@@ -1,5 +1,6 @@
 package com.c4.hero.domain.notification.entity;
 
+import com.c4.hero.domain.approval.entity.ApprovalDocument;
 import com.c4.hero.domain.employee.entity.Employee;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -64,8 +65,8 @@ public class Notification {
     @Column(name = "payroll_id")
     private Integer payrollId;
 
-    @Column(name = "document_id")
-    private Integer documentId;
+//    @Column(name = "document_id")
+//    private Integer documentId;
 
     @Column(name = "evaluation_id")
     private Integer evaluationId;
@@ -78,4 +79,8 @@ public class Notification {
             this.isRead = false;
         }
     }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "document_id") // 실제 DB 컬럼명
+    private ApprovalDocument approvalDocument;
 }
