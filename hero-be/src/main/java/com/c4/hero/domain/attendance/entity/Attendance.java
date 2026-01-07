@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,8 +33,9 @@ import java.time.LocalTime;
  */
 @Entity
 @Table(name = "tbl_attendance")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Getter
+@ToString
 public class Attendance {
 
     /** 근태 PK (식별자) */
@@ -67,4 +69,11 @@ public class Attendance {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "work_system_type_id")
     private WorkSystemType workSystemType;
+
+    /** 상태값 변경 메서드 */
+    public void changeStatus(LocalTime correctedStart, LocalTime correctedEnd, String status) {
+        this.state = status;
+        this.startTime = correctedStart;
+        this.endTime = correctedEnd;
+    }
 }
