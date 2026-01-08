@@ -1,11 +1,11 @@
 ## eb환경 자바플랫폼 nginx 서버를 5000으로 사용하고 있기 때문
 server:
   port: 5000
+  tomcat:
+    max-part-count: 100
 
 ## spring
 spring:
-  config:
-    import: optional:classpath:application-secret.yml
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://${RDS_HOSTNAME}:${RDS_PORT}/${RDS_DB_NAME}
@@ -36,8 +36,8 @@ spring:
   # 파일 업로드 크기 제한
   servlet:
     multipart:
-      max-file-size: 5MB
-      max-request-size: 5MB
+      max-file-size: 20MB
+      max-request-size: 100MB
 
 ## encryption
 encryption:
@@ -63,29 +63,7 @@ cloud:
     stack:
       auto: false
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+## Python Server
+ai:
+  server:
+    base-url: ${PYTHON_SERVER_URL}

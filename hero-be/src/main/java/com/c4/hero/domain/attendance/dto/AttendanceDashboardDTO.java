@@ -41,4 +41,28 @@ public class AttendanceDashboardDTO {
 
     /** 근태 점수 (100 - 지각×1 - 결근×2) */
     private Long score;
+
+    /**
+     * JPQL 쿼리 결과 매핑을 위한 생성자.
+     * JPQL의 sum() 결과 등이 Long이 아닌 Number(Integer 등)로 반환될 경우를 대비하여 Number로 받아서 처리합니다.
+     */
+    public AttendanceDashboardDTO(
+            Integer employeeId,
+            String employeeNumber,
+            String employeeName,
+            Integer departmentId,
+            String departmentName,
+            Number tardyCount,
+            Number absenceCount,
+            Number score
+    ) {
+        this.employeeId = employeeId;
+        this.employeeNumber = employeeNumber;
+        this.employeeName = employeeName;
+        this.departmentId = departmentId;
+        this.departmentName = departmentName;
+        this.tardyCount = tardyCount != null ? tardyCount.longValue() : 0L;
+        this.absenceCount = absenceCount != null ? absenceCount.longValue() : 0L;
+        this.score = score != null ? score.longValue() : 0L;
+    }
 }

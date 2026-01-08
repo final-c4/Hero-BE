@@ -657,7 +657,9 @@ public class AttendanceService {
             String month
     ) {
         // 1. total은 월 무관 (부서만 반영)
-        long total = attendanceDashboardSummaryRepository.countTotalEmployees(departmentId);
+        long total = attendanceDashboardSummaryRepository.countTotalEmployees(
+                departmentId
+        );
 
         // 2. 우수/위험은 월 기준
         DateRange range = resolveDashboardMonth(month);

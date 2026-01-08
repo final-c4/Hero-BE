@@ -27,6 +27,7 @@ import java.time.LocalDate;
  *     <li>기본 점수: 100점</li>
  *     <li>지각(LATE) 1회당 -1점</li>
  *     <li>결근(ABSENT) 1회당 -2점</li>
+ *     <li>휴직자(ON_LEAVE)는 점수 0점으로 처리</li>
  * </ul>
  *
  * @author 이지윤
@@ -42,11 +43,15 @@ public interface AttendanceDashboardRepository extends JpaRepository<Attendance,
      *     <li>month 기간의 근태 이력을 기준으로 집계</li>
      *     <li>{@code departmentId}가 null이면 전체 부서, 값이 있으면 해당 부서만 대상</li>
      *     <li>직원별로 지각 횟수, 결근 횟수, 계산된 점수를 함께 반환</li>
+     *     <li>휴직자(ON_LEAVE)는 점수 0점으로 반환</li>
+     *     <li>재직(ACTIVE) 및 휴직(ON_LEAVE) 상태인 직원만 조회 (퇴직자 제외)</li>
+     *     <li>admin 계정 제외</li>
      * </ul>
      *
      * @param departmentId 조회 대상 부서 ID (null인 경우 전체 부서)
      * @param startDate    조회 시작일 (yyyy-MM-dd)
      * @param endDate      조회 종료일 (yyyy-MM-dd)
+     * @param scoreSort    점수 정렬 방향 ("ASC" 또는 "DESC")
      * @param pageable     페이지/정렬 정보
      * @return 근태 대시보드 DTO의 페이지 결과
      */
@@ -60,43 +65,55 @@ public interface AttendanceDashboardRepository extends JpaRepository<Attendance,
             d.departmentName,
             coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L),
             coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L),
-            100L
-              - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L)
-              - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
+            case when e.status = com.c4.hero.domain.employee.type.EmployeeStatus.ON_LEAVE then 0L
+            else
+                100L
+                  - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L)
+                  - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
+            end
         )
         from Employee e
             join e.employeeDepartment d
             left join Attendance a
                 on a.employee = e
                and a.workDate between :startDate and :endDate
-        where e.status = 'A'
-          and (:departmentId is null or d.departmentId = :departmentId)
+        where (:departmentId is null or d.departmentId = :departmentId)
+          and (e.status = com.c4.hero.domain.employee.type.EmployeeStatus.ACTIVE or e.status = com.c4.hero.domain.employee.type.EmployeeStatus.ON_LEAVE)
+          and e.employeeName != 'admin'
         group by
             e.employeeId,
             e.employeeNumber,
             e.employeeName,
             d.departmentId,
-            d.departmentName
+            d.departmentName,
+            e.status
         order by
             case when :scoreSort = 'ASC' then (
-                100L
-                  - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L)
-                  - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
-            ) end asc,
+                    case when e.status = com.c4.hero.domain.employee.type.EmployeeStatus.ON_LEAVE then 0L
+                    else
+                        100L
+                          - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L)
+                          - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
+                    end
+                ) end asc,
             case when :scoreSort = 'DESC' then (
-                100L
-                  - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L)
-                  - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
-            ) end desc,
+                    case when e.status = com.c4.hero.domain.employee.type.EmployeeStatus.ON_LEAVE then 0L
+                    else
+                        100L
+                          - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L)
+                          - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
+                    end
+                ) end desc,
             e.employeeId asc
-        """,
+                """,
             countQuery = """
-        select count(distinct e.employeeId)
-        from Employee e
-            join e.employeeDepartment d
-        where e.status = 'A'
-          and (:departmentId is null or d.departmentId = :departmentId)
-        """
+                select count(e.employeeId)
+                from Employee e
+                    join e.employeeDepartment d
+                where (:departmentId is null or d.departmentId = :departmentId)
+                  and (e.status = com.c4.hero.domain.employee.type.EmployeeStatus.ACTIVE or e.status = com.c4.hero.domain.employee.type.EmployeeStatus.ON_LEAVE)
+                  and e.employeeName != 'admin'
+                """
     )
     Page<AttendanceDashboardDTO> findAttendanceDashboard(
             @Param("departmentId") Integer departmentId,
@@ -105,5 +122,4 @@ public interface AttendanceDashboardRepository extends JpaRepository<Attendance,
             @Param("scoreSort") String scoreSort,
             Pageable pageable
     );
-
 }

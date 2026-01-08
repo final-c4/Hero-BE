@@ -2,6 +2,7 @@ package com.c4.hero.domain.employee.entity;
 
 import com.c4.hero.domain.employee.type.ChangeType;
 import com.c4.hero.domain.employee.type.converter.ChangeTypeConverter;
+import jakarta.annotation.security.DenyAll;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -13,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,7 +37,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "tbl_employee_grade_history")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class EmployeeGradeHistory {
 
     /**

@@ -10,7 +10,6 @@ import com.c4.hero.domain.promotion.dto.request.DirectPromotionRequestDTO;
 import com.c4.hero.domain.promotion.dto.request.PromotionNominationRequestDTO;
 import com.c4.hero.domain.promotion.dto.request.PromotionPlanRequestDTO;
 import com.c4.hero.domain.promotion.dto.request.PromotionReviewRequestDTO;
-import com.c4.hero.domain.promotion.dto.response.PromotionDetailForReviewResponseDTO;
 import com.c4.hero.domain.promotion.dto.response.PromotionOptionsResponseDTO;
 import com.c4.hero.domain.promotion.dto.response.PromotionPlanDetailResponseDTO;
 import com.c4.hero.domain.promotion.dto.response.PromotionPlanForReviewResponseDTO;
