@@ -51,6 +51,4 @@ public class ClockStatusDTO {
     private Integer workDuration;
 
     private Integer workSystemTemplateId;  // 근무제 템플릿 ID 추가
-
-
 }

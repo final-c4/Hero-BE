@@ -62,7 +62,7 @@
 ## 🔗 관련 이슈
 <!--  
 아래 형식으로 적으면, 이 PR이 develop에 머지될 때 이슈가 자동으로 닫힙니다.
-> 예) Closes #12, Fixes #34, Resolves #56
+>
 -->
 - Closes #이슈번호
 - Related to #이슈번호

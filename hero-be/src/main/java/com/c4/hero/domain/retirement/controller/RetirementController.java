@@ -57,7 +57,7 @@ public class RetirementController {
     public ResponseEntity<CustomResponse<List<ExitReasonDTO>>> getExitReasons() {
         return ResponseEntity.ok(CustomResponse.success(retirementService.getExitReasons()));
     }
-    
+
     /**
      * 퇴직 현황 요약 정보를 조회합니다.
      *

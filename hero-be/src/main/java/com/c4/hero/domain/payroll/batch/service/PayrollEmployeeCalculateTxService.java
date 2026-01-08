@@ -51,7 +51,6 @@ public class PayrollEmployeeCalculateTxService {
         try {
             int baseSalary = attendanceService.getBaseSalary(empId); // 근태 연동(기본급 조회)
 
-
             baseSalary = payrollRaiseRepository
                     .findTopByEmployeeIdAndEffectiveMonthAndStatusOrderByRaiseIdDesc(
                             empId, batch.getSalaryMonth(), "APPROVED"

@@ -23,14 +23,14 @@
     * @param bankAccountId 급여 계좌 ID
     * @return 존재 여부 (1: 존재함, 0: 존재하지 않음)
     -->
-   <select id="existsByBankAccountId" parameterType="int" resultType="int">
-       SELECT CASE WHEN EXISTS (
-           SELECT 1
-           FROM tbl_payment_history
-           WHERE bank_account_id = #{bankAccountId}
-           LIMIT 1
-       ) THEN 1 ELSE 0 END
-   </select>
+    <select id="existsByBankAccountId" parameterType="int" resultType="int">
+        SELECT CASE WHEN EXISTS (
+            SELECT 1
+            FROM tbl_payment_history
+            WHERE bank_account_id = #{bankAccountId}
+            LIMIT 1
+        ) THEN 1 ELSE 0 END
+    </select>
 
     <select id="countPayrollSearch" resultType="int">
         SELECT COUNT(*)
