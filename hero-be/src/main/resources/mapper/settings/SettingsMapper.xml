@@ -7,12 +7,12 @@
     <!-- 만약 설정값이 없다면 5를 반환 -->
     <select id = "selectPolicy" resultType="int">
         SELECT IFNULL(
-            (SELECT
-                    l.value
-               FROM tbl_login_policies AS l
-              WHERE l.login_policy_id = 1)
-          , 5
-        )
+                       (SELECT
+                            l.value
+                        FROM tbl_login_policies AS l
+                        WHERE l.login_policy_id = 1)
+                   , 5
+               )
     </select>
 
     <resultMap id="permissionsResultMap" type="com.c4.hero.domain.settings.dto.response.SettingsPermissionsResponseDTO">
@@ -41,68 +41,73 @@
 
     <select id="findEmployeePermissions" resultMap="permissionsResultMap">
         SELECT
-            e.employee_id AS employeeId,
-            e.employee_name,
-            e.employee_number,
-            d.department_name AS department,
-            g.grade AS grade,
-            jt.job_title AS jobTitle,
-            r.role AS roleName
+        e.employee_id AS employeeId,
+        e.employee_name,
+        e.employee_number,
+        d.department_name AS department,
+        g.grade AS grade,
+        jt.job_title AS jobTitle,
+        r.role AS roleName
         FROM
-            tbl_employee e
+        tbl_employee e
         LEFT JOIN
-            tbl_department d ON e.department_id = d.department_id
+        tbl_department d ON e.department_id = d.department_id
         LEFT JOIN
-            tbl_grade g ON e.grade_id = g.grade_id
+        tbl_grade g ON e.grade_id = g.grade_id
         LEFT JOIN
-            tbl_job_title jt ON e.job_title_id = jt.job_title_id
+        tbl_job_title jt ON e.job_title_id = jt.job_title_id
         LEFT JOIN
-            tbl_account a ON e.employee_id = a.employee_id
+        tbl_account a ON e.employee_id = a.employee_id
         LEFT JOIN
-            tbl_account_role ar ON a.account_id = ar.account_id
+        tbl_account_role ar ON a.account_id = ar.account_id
         LEFT JOIN
-            tbl_roles r ON ar.role_id = r.role_id
+        tbl_roles r ON ar.role_id = r.role_id
         WHERE e.employee_id IN (
-            SELECT employee_id FROM (
-                SELECT DISTINCT e.employee_id
-                FROM tbl_employee e
-                LEFT JOIN tbl_department d ON e.department_id = d.department_id
-                LEFT JOIN tbl_grade g ON e.grade_id = g.grade_id
-                LEFT JOIN tbl_job_title jt ON e.job_title_id = jt.job_title_id
-                <where>
-                    e.status != 'R'
-                    <if test="params.query != null and params.query != ''">
-                        e.employee_name LIKE CONCAT('%', #{params.query}, '%')
-                        OR d.department_name LIKE CONCAT('%', #{params.query}, '%')
-                        OR g.grade LIKE CONCAT('%', #{params.query}, '%')
-                        OR jt.job_title LIKE CONCAT('%', #{params.query}, '%')
-                    </if>
-                </where>
-                ORDER BY e.employee_id
-                LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
-            ) as t
-        )
-        ORDER BY
-            e.employee_id
-    </select>
-
-    <select id="countEmployeePermissions" resultType="int">
-        SELECT
-            COUNT(DISTINCT e.employee_id)
-        FROM
-            tbl_employee e
-        LEFT JOIN
-            tbl_department d ON e.department_id = d.department_id
-        LEFT JOIN
-            tbl_grade g ON e.grade_id = g.grade_id
-        LEFT JOIN
-            tbl_job_title jt ON e.job_title_id = jt.job_title_id
+        SELECT employee_id FROM (
+        SELECT DISTINCT e.employee_id
+        FROM tbl_employee e
+        LEFT JOIN tbl_department d ON e.department_id = d.department_id
+        LEFT JOIN tbl_grade g ON e.grade_id = g.grade_id
+        LEFT JOIN tbl_job_title jt ON e.job_title_id = jt.job_title_id
         <where>
+            e.status != 'R'
             <if test="params.query != null and params.query != ''">
+                AND (
                 e.employee_name LIKE CONCAT('%', #{params.query}, '%')
                 OR d.department_name LIKE CONCAT('%', #{params.query}, '%')
                 OR g.grade LIKE CONCAT('%', #{params.query}, '%')
                 OR jt.job_title LIKE CONCAT('%', #{params.query}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY e.employee_id
+        LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
+        ) as t
+        )
+        ORDER BY
+        e.employee_id
+    </select>
+
+    <select id="countEmployeePermissions" resultType="int">
+        SELECT
+        COUNT(DISTINCT e.employee_id)
+        FROM
+        tbl_employee e
+        LEFT JOIN
+        tbl_department d ON e.department_id = d.department_id
+        LEFT JOIN
+        tbl_grade g ON e.grade_id = g.grade_id
+        LEFT JOIN
+        tbl_job_title jt ON e.job_title_id = jt.job_title_id
+        <where>
+            e.status != 'R'
+            <if test="params.query != null and params.query != ''">
+                AND (
+                e.employee_name LIKE CONCAT('%', #{params.query}, '%')
+                OR d.department_name LIKE CONCAT('%', #{params.query}, '%')
+                OR g.grade LIKE CONCAT('%', #{params.query}, '%')
+                OR jt.job_title LIKE CONCAT('%', #{params.query}, '%')
+                )
             </if>
         </where>
     </select>

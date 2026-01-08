@@ -1,10 +1,13 @@
 package com.c4.hero.domain.approval.entity;
 
+import com.c4.hero.domain.notification.entity.Notification;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <pre>
@@ -104,6 +107,10 @@ public class ApprovalDocument {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // 문서 삭제 시 연관된 알림도 함께 삭제
+    @OneToMany(mappedBy = "approvalDocument", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Notification> notifications = new ArrayList<>();
 
     /* ========================================== */
     /* 편의 메서드 */
