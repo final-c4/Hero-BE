@@ -207,6 +207,6 @@
         FROM tbl_employee e
                  LEFT JOIN tbl_department d ON e.department_id = d.department_id
         WHERE e.status = 'A'
-        AND e.employee_id != 1
+          AND e.employee_id != 1
     </select>
 </mapper>
