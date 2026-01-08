@@ -56,6 +56,8 @@ public interface AttendanceDashboardSummaryRepository extends JpaRepository<Empl
             from Employee e
                 join e.employeeDepartment d
             where (:departmentId is null or d.departmentId = :departmentId)
+              and (e.status = com.c4.hero.domain.employee.type.EmployeeStatus.ACTIVE or e.status = com.c4.hero.domain.employee.type.EmployeeStatus.ON_LEAVE)
+              and e.employeeName != 'admin'
             """
     )
     long countTotalEmployees(@Param("departmentId") Integer departmentId);
@@ -68,6 +70,7 @@ public interface AttendanceDashboardSummaryRepository extends JpaRepository<Empl
      *     <li>기본 점수: 100점</li>
      *     <li>지각(상태 = '지각') 1회당 -1점</li>
      *     <li>결근(상태 = '결근') 1회당 -2점</li>
+     *     <li>휴직자(ON_LEAVE)는 점수 0점으로 처리되어 우수 직원에 포함되지 않음</li>
      * </ul>
      *
      * <p>조회 조건</p>
@@ -88,6 +91,8 @@ public interface AttendanceDashboardSummaryRepository extends JpaRepository<Empl
             from Employee e
                 join e.employeeDepartment d
             where (:departmentId is null or d.departmentId = :departmentId)
+              and (e.status = com.c4.hero.domain.employee.type.EmployeeStatus.ACTIVE or e.status = com.c4.hero.domain.employee.type.EmployeeStatus.ON_LEAVE)
+              and e.employeeName != 'admin'
               and e.employeeId in (
                   select e2.employeeId
                   from Employee e2
@@ -96,11 +101,14 @@ public interface AttendanceDashboardSummaryRepository extends JpaRepository<Empl
                           on a.employee = e2
                          and a.workDate between :startDate and :endDate
                   where (:departmentId is null or d2.departmentId = :departmentId)
-                  group by e2.employeeId
+                  group by e2.employeeId, e2.status
                   having (
-                      100L
-                      - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L) * 1L
-                      - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
+                      case when e2.status = com.c4.hero.domain.employee.type.EmployeeStatus.ON_LEAVE then 0L
+                      else
+                          100L
+                          - coalesce(sum(case when a.state = '지각' then 1L else 0L end), 0L) * 1L
+                          - coalesce(sum(case when a.state = '결근' then 1L else 0L end), 0L) * 2L
+                      end
                   ) >= 95L
               )
             """
@@ -116,11 +124,12 @@ public interface AttendanceDashboardSummaryRepository extends JpaRepository<Empl
      *
      * <p>근태 점수 계산 로직은 {@link #countExcellentEmployees(Integer, LocalDate, LocalDate)}와 동일하며,</p>
      * <p>점수 기준만 {@code <= 85}로 변경됩니다.</p>
+     * <p>휴직자(ON_LEAVE)는 위험 직원 집계에서 제외합니다.</p>
      *
      * @param departmentId 조회 대상 부서 ID (null이면 전체 부서)
      * @param startDate    근태 점수 산정 시작일
      * @param endDate      근태 점수 산정 종료일
-     * @return 점수 85점 이하인 위험 직원 수
+     * @return 점수 85점 이하인 위험 직원 수 (휴직자 제외)
      */
     @Query(
             """
@@ -128,6 +137,8 @@ public interface AttendanceDashboardSummaryRepository extends JpaRepository<Empl
             from Employee e
                 join e.employeeDepartment d
             where (:departmentId is null or d.departmentId = :departmentId)
+              and e.status = com.c4.hero.domain.employee.type.EmployeeStatus.ACTIVE
+              and e.employeeName != 'admin'
               and e.employeeId in (
                   select e2.employeeId
                   from Employee e2
