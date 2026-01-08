@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * <pre>
@@ -18,6 +19,7 @@ import lombok.NoArgsConstructor;
  * @version 1.0
  */
 @Getter
+@Setter
 @NoArgsConstructor
 public class PromotionNominationRequestDTO {
 
